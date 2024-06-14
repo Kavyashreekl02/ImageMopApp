@@ -458,7 +458,7 @@ export default function Home() {
                     onClick={() => handleReview(selectedImage.id)}
                     style={{ 
                       padding: '10px 20px', 
-                      backgroundColor: '#ffa500', 
+                      backgroundColor: '#1e90ff', 
                       color: 'white', 
                       border: 'none', 
                       borderRadius: '4px', 
@@ -506,34 +506,24 @@ export default function Home() {
               </div>
             )}
           </div>
-          <div style={{ width: '40%', minHeight: '400px', overflow: 'hidden' }}>
-            {selectedImage && (
-              <div style={{ border: '1px solid #ddd', padding: '20px', boxShadow: '0 0 10px rgba(0,0,0,0.1)', minHeight: '400px' }}>
-                <h3>Image Attribute</h3>
-                <pre style={{ backgroundColor: '#f4f4f4', padding: '10px', borderRadius: '5px', overflowX: 'auto', maxHeight: 'calc(100% - 50px)', marginBottom: '20px' }}>
-                  {JSON.stringify(selectedImage.json, null, 2)}
-                </pre>
-              </div>
+          
+          <div style={{ width: '40%', minWidth: '300px', border: '1px solid #ddd', padding: '20px', boxShadow: '0 0 10px rgba(0,0,0,0.1)', overflowY: 'auto' }}>
+            <h3 style={{ marginTop: 0 }}>Rejected Images</h3>
+            {rejectedImages.length === 0 ? (
+              <p>No rejected images</p>
+            ) : (
+              <ul style={{ listStyleType: 'none', padding: 0 }}>
+                {rejectedImages.map((image, index) => (
+                  <li key={index} style={{ marginBottom: '10px' }}>
+                    <img src={image.url} alt="Rejected" style={{ width: '100px', height: '100px', objectFit: 'cover', marginRight: '10px' }} />
+                    <span>{image.date}</span>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
-        </div>
-      )}
-
-      {/* Displaying Review Images */}
-      {reviewImages.length > 0 && (
-        <div style={{ marginTop: '20px', border: '1px solid #ddd', padding: '20px', boxShadow: '0 0 10px rgba(0,0,0,0.1)', backgroundColor: '#f9f9f9' }}>
-          <h2>Review Later Images</h2>
-          {reviewImages.map((image, index) => (
-            <div key={index} style={{ marginBottom: '10px' }}>
-              <img src={image.url} alt="Review Later" style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', marginBottom: '10px' }} />
-              <p><strong>Date Reviewed:</strong> {image.date}</p>
-            </div>
-          ))}
         </div>
       )}
     </div>
   );
 }
-
-
-
