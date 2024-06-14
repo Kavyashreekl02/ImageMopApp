@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 export default function Home() {
@@ -19,11 +19,8 @@ export default function Home() {
 
   const handleStatusUpdate = async (id, newStatus) => {
     try {
-      await axios.post('http://localhost:3001/images', { url, status, json: JSON.parse(json) });
-      
-      setUrl('');
-      setStatus('');
-      setJson('');
+      await axios.put(`http://localhost:3001/products/${id}`, { status: newStatus });
+      fetchProducts();
     } catch (error) {
       console.error('Error creating image:', error);
     }
