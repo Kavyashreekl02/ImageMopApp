@@ -1,13 +1,13 @@
 import { Repository } from 'typeorm';
 import { CreateImageDto } from './dto/create-image.dto';
 import { UpdateImageDto } from './dto/update-image.dto';
-import { Image } from './entities/image.entity';
+import { Product } from './entities/image.entity';
 export declare class ImageService {
-    private readonly imageRepository;
-    constructor(imageRepository: Repository<Image>);
-    create(createImageDto: CreateImageDto): Promise<Image>;
-    findAll(): Promise<Image[]>;
-    findOne(id: number): Promise<Image>;
-    update(id: number, updateImageDto: UpdateImageDto): Promise<Image>;
+    private readonly productRepository;
+    constructor(productRepository: Repository<Product>);
+    create(createProductDto: CreateImageDto): Promise<Product>;
+    findAll(): Promise<Product[]>;
+    findOne(id: number): Promise<Product>;
+    update(id: number, updateProductDto: UpdateImageDto): Promise<Product>;
     remove(id: number): Promise<void>;
 }

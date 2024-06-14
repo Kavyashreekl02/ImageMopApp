@@ -18,39 +18,39 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const image_entity_1 = require("./entities/image.entity");
 let ImageService = class ImageService {
-    constructor(imageRepository) {
-        this.imageRepository = imageRepository;
+    constructor(productRepository) {
+        this.productRepository = productRepository;
     }
-    create(createImageDto) {
-        const image = this.imageRepository.create(createImageDto);
-        return this.imageRepository.save(image);
+    create(createProductDto) {
+        const product = this.productRepository.create(createProductDto);
+        return this.productRepository.save(product);
     }
     findAll() {
-        return this.imageRepository.find();
+        return this.productRepository.find();
     }
     findOne(id) {
-        return this.imageRepository.findOneBy({ id });
+        return this.productRepository.findOneBy({ id });
     }
-    async update(id, updateImageDto) {
-        const image = await this.findOne(id);
-        if (!image) {
-            throw new common_1.NotFoundException(`Image with ID ${id} not found`);
+    async update(id, updateProductDto) {
+        const product = await this.findOne(id);
+        if (!product) {
+            throw new common_1.NotFoundException(`Product with ID ${id} not found`);
         }
-        Object.assign(image, updateImageDto);
-        return this.imageRepository.save(image);
+        Object.assign(product, updateProductDto);
+        return this.productRepository.save(product);
     }
     async remove(id) {
-        const image = await this.findOne(id);
-        if (!image) {
-            throw new common_1.NotFoundException(`Image with ID ${id} not found`);
+        const product = await this.findOne(id);
+        if (!product) {
+            throw new common_1.NotFoundException(`Product with ID ${id} not found`);
         }
-        await this.imageRepository.remove(image);
+        await this.productRepository.remove(product);
     }
 };
 exports.ImageService = ImageService;
 exports.ImageService = ImageService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_1.InjectRepository)(image_entity_1.Image)),
+    __param(0, (0, typeorm_1.InjectRepository)(image_entity_1.Product)),
     __metadata("design:paramtypes", [typeorm_2.Repository])
 ], ImageService);
 //# sourceMappingURL=image.service.js.map

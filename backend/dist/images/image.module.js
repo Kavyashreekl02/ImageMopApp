@@ -17,7 +17,7 @@ let ImageModule = class ImageModule {
 exports.ImageModule = ImageModule;
 exports.ImageModule = ImageModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([image_entity_1.Image])],
+        imports: [typeorm_1.TypeOrmModule.forFeature([image_entity_1.Product])],
         controllers: [image_controller_1.ImageController],
         providers: [image_service_1.ImageService],
     })

@@ -9,28 +9,56 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Image = void 0;
+exports.Product = void 0;
 const typeorm_1 = require("typeorm");
-let Image = class Image {
+let Product = class Product {
 };
-exports.Image = Image;
+exports.Product = Product;
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
-], Image.prototype, "id", void 0);
+], Product.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
-], Image.prototype, "url", void 0);
+], Product.prototype, "fdc_product_id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: 'active' }),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
-], Image.prototype, "status", void 0);
+], Product.prototype, "name", void 0);
 __decorate([
-    (0, typeorm_1.Column)('json', { nullable: true }),
-    __metadata("design:type", Object)
-], Image.prototype, "data", void 0);
-exports.Image = Image = __decorate([
-    (0, typeorm_1.Entity)()
-], Image);
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Product.prototype, "product_image_uri", void 0);
+__decorate([
+    (0, typeorm_1.Column)('text'),
+    __metadata("design:type", String)
+], Product.prototype, "product_description", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Product.prototype, "product_dimensions", void 0);
+__decorate([
+    (0, typeorm_1.CreateDateColumn)(),
+    __metadata("design:type", Date)
+], Product.prototype, "created_at", void 0);
+__decorate([
+    (0, typeorm_1.UpdateDateColumn)(),
+    __metadata("design:type", Date)
+], Product.prototype, "updated_at", void 0);
+__decorate([
+    (0, typeorm_1.Column)('float'),
+    __metadata("design:type", Number)
+], Product.prototype, "price", void 0);
+__decorate([
+    (0, typeorm_1.Column)('int'),
+    __metadata("design:type", Number)
+], Product.prototype, "quantity", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Product.prototype, "status", void 0);
+exports.Product = Product = __decorate([
+    (0, typeorm_1.Entity)('products')
+], Product);
 //# sourceMappingURL=image.entity.js.map

@@ -23,7 +23,7 @@ exports.AppModule = AppModule = __decorate([
                 port: 5432,
                 password: 'root',
                 username: 'postgres',
-                entities: [image_entity_1.Image],
+                entities: [image_entity_1.Product],
                 database: 'nestapp',
                 synchronize: true,
                 logging: true,

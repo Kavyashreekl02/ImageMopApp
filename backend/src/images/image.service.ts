@@ -5,44 +5,45 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateImageDto } from './dto/create-image.dto';
 import { UpdateImageDto } from './dto/update-image.dto';
-import { Image } from './entities/image.entity';
+import { Product } from './entities/image.entity';
 
 @Injectable()
 export class ImageService {
   constructor(
-    @InjectRepository(Image)
-    private readonly imageRepository: Repository<Image>,
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
   ) {}
 
-  create(createImageDto: CreateImageDto): Promise<Image> {
-    const image = this.imageRepository.create(createImageDto);
-    return this.imageRepository.save(image);
+  create(createProductDto: CreateImageDto): Promise<Product> {
+    const product = this.productRepository.create(createProductDto);
+    return this.productRepository.save(product);
   }
 
-  findAll(): Promise<Image[]> {
-    return this.imageRepository.find();
+  findAll(): Promise<Product[]> {
+    return this.productRepository.find();
   }
 
-  findOne(id: number): Promise<Image> {
-    return this.imageRepository.findOneBy({ id });
+  findOne(id: number): Promise<Product> {
+    return this.productRepository.findOneBy({ id });
   }
 
-  async update(id: number, updateImageDto: UpdateImageDto): Promise<Image> {
-    const image = await this.findOne(id);
-    if (!image) {
-      throw new NotFoundException(`Image with ID ${id} not found`);
+  async update(id: number, updateProductDto: UpdateImageDto): Promise<Product> {
+    const product = await this.findOne(id);
+    if (!product) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
     }
 
-    Object.assign(image, updateImageDto);
-    return this.imageRepository.save(image);
+    Object.assign(product, updateProductDto);
+    return this.productRepository.save(product);
   }
 
   async remove(id: number): Promise<void> {
-    const image = await this.findOne(id);
-    if (!image) {
-      throw new NotFoundException(`Image with ID ${id} not found`);
+    const product = await this.findOne(id);
+    if (!product) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
     }
 
-    await this.imageRepository.remove(image);
+    await this.productRepository.remove(product);
   }
 }
+
