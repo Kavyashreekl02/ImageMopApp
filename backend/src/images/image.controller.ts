@@ -1,36 +1,41 @@
 /* eslint-disable prettier/prettier */
 // src/image/image.controller.ts
-import { Controller, Post, Body, Get, Param, Put, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Put, Delete, NotFoundException } from '@nestjs/common';
 import { ImageService } from './image.service';
 import { CreateImageDto } from './dto/create-image.dto';
 import { UpdateImageDto } from './dto/update-image.dto';
 
-@Controller('images')
+@Controller('products')
 export class ImageController {
-  constructor(private readonly imageService: ImageService) {}
+  constructor(private readonly productService: ImageService) {}
 
   @Post()
-  create(@Body() createImageDto: CreateImageDto) {
-    return this.imageService.create(createImageDto);
+  create(@Body() createProductDto: CreateImageDto) {
+    return this.productService.create(createProductDto);
   }
 
   @Get()
   findAll() {
-    return this.imageService.findAll();
+    return this.productService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.imageService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const product = await this.productService.findOne(+id);
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+    return product;
   }
 
   @Put(':id')
-  update(@Param('id') id: number, @Body() updateImageDto: UpdateImageDto) {
-    return this.imageService.update(id, updateImageDto);
+  update(@Param('id') id: number, @Body() updateProductDto: UpdateImageDto) {
+    return this.productService.update(id, updateProductDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: number) {
-    return this.imageService.remove(id);
+    return this.productService.remove(id);
   }
 }
+

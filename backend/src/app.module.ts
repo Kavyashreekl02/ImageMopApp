@@ -2,7 +2,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ImageModule } from './images/image.module';
-import { Image } from './images/entities/image.entity'; 
+import { Product } from './images/entities/image.entity'; 
 
 
 @Module({
@@ -13,8 +13,8 @@ import { Image } from './images/entities/image.entity';
       port: 5432,
       password: 'root',
       username: 'postgres',
-      entities: [Image],
-      database: 'ImageDB',
+      entities: [Product],
+      database: 'nestapp',
       synchronize: true,
       logging: true,
     }),
