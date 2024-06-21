@@ -1,6 +1,7 @@
+import { ProductImage } from './image-image.entity';
+import { ProductSkuVariation } from './image-sku.entity';
 export declare class Product {
-    id: number;
-    fdc_product_id: string;
+    sgid: number;
     name: string;
     product_image_uri: string;
     product_description: string;
@@ -10,4 +11,6 @@ export declare class Product {
     price: number;
     quantity: number;
     status: string;
+    productImages: ProductImage[];
+    productSkuVariations: ProductSkuVariation[];
 }

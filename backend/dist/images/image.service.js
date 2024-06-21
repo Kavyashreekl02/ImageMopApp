@@ -29,7 +29,7 @@ let ImageService = class ImageService {
         return this.productRepository.find();
     }
     findOne(id) {
-        return this.productRepository.findOneBy({ id });
+        return this.productRepository.findOneBy({ sgid: id });
     }
     async update(id, updateProductDto) {
         const product = await this.findOne(id);

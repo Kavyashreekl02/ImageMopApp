@@ -1,2 +1,2 @@
-export declare class ImageModule {
+export declare class ProductModule {
 }

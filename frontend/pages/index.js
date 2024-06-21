@@ -43,48 +43,48 @@ export default function Home() {
     setReviewLaterProducts(reviewLater);
   };
 
-  const handleStatusUpdate = async (id, newStatus) => {
+  const handleStatusUpdate = async (sgid, newStatus) => {
     try {
-      await axios.put(`http://localhost:3001/products/${id}`, { status: newStatus });
+      await axios.put(`http://localhost:3001/products/${sgid}`, { status: newStatus });
 
       // Update the products array locally instead of refetching
-      const updatedProducts = products.map(product => 
-        product.id === id ? { ...product, status: newStatus } : product
+      const updatedProducts = products.map(product =>
+        product.sgid === sgid ? { ...product, status: newStatus } : product
       );
 
       setProducts(updatedProducts);
       filterProducts(updatedProducts);
 
       // Ensure the selected product remains the same
-      const updatedSelectedProduct = updatedProducts.find(product => product.id === selectedProduct.id);
+      const updatedSelectedProduct = updatedProducts.find(product => product.sgid === selectedProduct.sgid);
       setSelectedProduct(updatedSelectedProduct || null);
     } catch (error) {
       console.error('Error updating product status:', error);
     }
   };
 
-  const handleReject = async (id) => {
+  const handleReject = async (sgid) => {
     const confirmReject = window.confirm('Are you sure you want to reject this product?');
     if (confirmReject) {
       try {
-        await handleStatusUpdate(id, 'Rejected');
+        await handleStatusUpdate(sgid, 'Rejected');
       } catch (error) {
         console.error('Error rejecting product:', error);
       }
     }
   };
 
-  const handleApprove = async (id) => {
-    await handleStatusUpdate(id, 'Approved');
+  const handleApprove = async (sgid) => {
+    await handleStatusUpdate(sgid, 'Approved');
   };
 
-  const handleReviewLater = async (id) => {
-    await handleStatusUpdate(id, 'ReviewLater');
+  const handleReviewLater = async (sgid) => {
+    await handleStatusUpdate(sgid, 'ReviewLater');
   };
 
   const handleReviewAgain = async (product) => {
     try {
-      await handleStatusUpdate(product.id, 'Pending');
+      await handleStatusUpdate(product.sgid, 'Pending');
       setSelectedProduct(product);
       setReviewMode(true);
       console.log('Product status reset to Pending:', product);
@@ -92,6 +92,7 @@ export default function Home() {
       console.error('Error resetting product status:', error);
     }
   };
+
 
   const handleNextPageApproved = () => {
     setCurrentPageApproved(currentPageApproved + 1);
@@ -351,7 +352,7 @@ export default function Home() {
                   }}
                 >
                   <button
-                    onClick={() => handleApprove(selectedProduct.id)}
+                    onClick={() => handleApprove(selectedProduct.sgid)}
                     style={{
                       padding: '10px 20px',
                       backgroundColor: '#1E90FF',
@@ -367,7 +368,7 @@ export default function Home() {
                     Approve
                   </button>
                   <button
-                    onClick={() => handleReject(selectedProduct.id)}
+                    onClick={() => handleReject(selectedProduct.sgid)}
 
                     style={{
                       padding: '10px 20px',
@@ -384,7 +385,7 @@ export default function Home() {
                     Reject
                   </button>
                   <button
-                    onClick={() => handleReviewLater(selectedProduct.id)}
+                    onClick={() => handleReviewLater(selectedProduct.sgid)}
                     style={{
                       padding: '10px 20px',
                       backgroundColor: '',

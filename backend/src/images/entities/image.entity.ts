@@ -1,25 +1,23 @@
 /* eslint-disable prettier/prettier */
-// src/image/image.entity.ts
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { ProductImage } from './image-image.entity';
+import { ProductSkuVariation } from './image-sku.entity';
 
 @Entity('products')
 export class Product {
   @PrimaryGeneratedColumn()
-  id: number;
+  sgid: number;
 
-  @Column({nullable: true})
-  fdc_product_id: string;
-
-  @Column({nullable: true})
+  @Column()
   name: string;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   product_image_uri: string;
 
   @Column('text')
   product_description: string;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   product_dimensions: string;
 
   @CreateDateColumn()
@@ -34,9 +32,12 @@ export class Product {
   @Column('int')
   quantity: number;
 
-  @Column({nullable: true})
+  @Column()
   status: string;
+
+  @OneToMany(() => ProductImage, productImage => productImage.product)
+  productImages: ProductImage[];
+
+  @OneToMany(() => ProductSkuVariation, productSkuVariation => productSkuVariation.product)
+  productSkuVariations: ProductSkuVariation[];
 }
-
-
-

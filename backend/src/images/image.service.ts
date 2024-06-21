@@ -1,5 +1,4 @@
 /* eslint-disable prettier/prettier */
-// src/image/image.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -24,7 +23,7 @@ export class ImageService {
   }
 
   findOne(id: number): Promise<Product> {
-    return this.productRepository.findOneBy({ id });
+    return this.productRepository.findOneBy({ sgid: id });
   }
 
   async update(id: number, updateProductDto: UpdateImageDto): Promise<Product> {
@@ -46,4 +45,3 @@ export class ImageService {
     await this.productRepository.remove(product);
   }
 }
-
