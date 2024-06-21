@@ -14,7 +14,7 @@ import { Product } from './images/entities/image.entity';
       password: 'root',
       username: 'postgres',
       entities: [Product],
-      database: 'nestapp',
+      database: 'ImageDB',
       synchronize: true,
       logging: true,
     }),
