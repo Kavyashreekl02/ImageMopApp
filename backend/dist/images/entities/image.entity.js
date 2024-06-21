@@ -11,19 +11,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Product = void 0;
 const typeorm_1 = require("typeorm");
+const image_image_entity_1 = require("./image-image.entity");
+const image_sku_entity_1 = require("./image-sku.entity");
 let Product = class Product {
 };
 exports.Product = Product;
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
-], Product.prototype, "id", void 0);
+], Product.prototype, "sgid", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], Product.prototype, "fdc_product_id", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Product.prototype, "name", void 0);
 __decorate([
@@ -55,9 +53,17 @@ __decorate([
     __metadata("design:type", Number)
 ], Product.prototype, "quantity", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Product.prototype, "status", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => image_image_entity_1.ProductImage, productImage => productImage.product),
+    __metadata("design:type", Array)
+], Product.prototype, "productImages", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => image_sku_entity_1.ProductSkuVariation, productSkuVariation => productSkuVariation.product),
+    __metadata("design:type", Array)
+], Product.prototype, "productSkuVariations", void 0);
 exports.Product = Product = __decorate([
     (0, typeorm_1.Entity)('products')
 ], Product);

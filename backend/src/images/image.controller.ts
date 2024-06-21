@@ -1,5 +1,4 @@
 /* eslint-disable prettier/prettier */
-// src/image/image.controller.ts
 import { Controller, Post, Body, Get, Param, Put, Delete, NotFoundException } from '@nestjs/common';
 import { ImageService } from './image.service';
 import { CreateImageDto } from './dto/create-image.dto';
@@ -38,4 +37,3 @@ export class ImageController {
     return this.productService.remove(id);
   }
 }
-

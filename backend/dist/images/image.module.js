@@ -6,20 +6,22 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ImageModule = void 0;
+exports.ProductModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const image_service_1 = require("./image.service");
 const image_controller_1 = require("./image.controller");
 const image_entity_1 = require("./entities/image.entity");
-let ImageModule = class ImageModule {
+const image_image_entity_1 = require("./entities/image-image.entity");
+const image_sku_entity_1 = require("./entities/image-sku.entity");
+let ProductModule = class ProductModule {
 };
-exports.ImageModule = ImageModule;
-exports.ImageModule = ImageModule = __decorate([
+exports.ProductModule = ProductModule;
+exports.ProductModule = ProductModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([image_entity_1.Product])],
+        imports: [typeorm_1.TypeOrmModule.forFeature([image_entity_1.Product, image_image_entity_1.ProductImage, image_sku_entity_1.ProductSkuVariation])],
         controllers: [image_controller_1.ImageController],
         providers: [image_service_1.ImageService],
     })
-], ImageModule);
+], ProductModule);
 //# sourceMappingURL=image.module.js.map

@@ -11,6 +11,8 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const image_module_1 = require("./images/image.module");
 const image_entity_1 = require("./images/entities/image.entity");
+const image_image_entity_1 = require("./images/entities/image-image.entity");
+const image_sku_entity_1 = require("./images/entities/image-sku.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -21,14 +23,14 @@ exports.AppModule = AppModule = __decorate([
                 type: 'postgres',
                 host: 'localhost',
                 port: 5432,
-                password: 'root',
                 username: 'postgres',
-                entities: [image_entity_1.Product],
-                database: 'ImageDB',
+                password: 'root',
+                database: 'nestapp',
+                entities: [image_entity_1.Product, image_image_entity_1.ProductImage, image_sku_entity_1.ProductSkuVariation],
                 synchronize: true,
                 logging: true,
             }),
-            image_module_1.ImageModule,
+            image_module_1.ProductModule,
         ],
     })
 ], AppModule);
