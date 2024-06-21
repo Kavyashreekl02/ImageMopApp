@@ -1,37 +1,22 @@
-<<<<<<< HEAD
-import { useState, useEffect } from 'react';
-=======
 import React, { useState, useEffect } from 'react';
->>>>>>> 4b6bc45b348f99905d891a5f4d4833e101b8231f
 import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
+import '@fortawesome/fontawesome-free/css/all.css';
 
 export default function Home() {
   const [products, setProducts] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-<<<<<<< HEAD
-  const [showImages, setShowImages] = useState(false);
-  const [rejectedImages, setRejectedImages] = useState([]);
-  const [selectedImage, setSelectedImage] = useState(null);
-
-  useEffect(() => {
-    fetchImages();
-  }, []);
-=======
   const [view, setView] = useState('all'); // 'all', 'approved', 'rejected', 'reviewLater'
   const [rejectedProducts, setRejectedProducts] = useState([]);
   const [approvedProducts, setApprovedProducts] = useState([]);
   const [reviewLaterProducts, setReviewLaterProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [reviewMode, setReviewMode] = useState(false); // New state for review mode
-<<<<<<< HEAD
->>>>>>> 4b6bc45b348f99905d891a5f4d4833e101b8231f
-=======
   const [currentPageApproved, setCurrentPageApproved] = useState(0);
   const [currentPageRejected, setCurrentPageRejected] = useState(0);
   const [currentPageReviewLater, setCurrentPageReviewLater] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(8); // Number of items per page
-  const [showRejectConfirmation, setShowRejectConfirmation] = useState(false); // State to manage reject confirmation dialog
->>>>>>> dd12d255d807dfbc9978d97d93b8cd88a370ad8b
 
   useEffect(() => {
     fetchProducts();
@@ -39,16 +24,10 @@ export default function Home() {
 
   const fetchProducts = async () => {
     try {
-<<<<<<< HEAD
-      const response = await axios.get('http://localhost:3001/images');
-      setImages(response.data);
-      setSelectedImage(response.data[0]); // Select the first image by default
-=======
       const response = await axios.get('http://localhost:3001/products');
       setProducts(response.data);
       setSelectedProduct(response.data[0]); // Select the first product by default
       filterProducts(response.data);
->>>>>>> 4b6bc45b348f99905d891a5f4d4833e101b8231f
     } catch (error) {
       console.error('Error fetching products:', error);
     }
@@ -58,128 +37,59 @@ export default function Home() {
     const approved = products.filter(product => product.status === 'Approved');
     const rejected = products.filter(product => product.status === 'Rejected');
     const reviewLater = products.filter(product => product.status === 'ReviewLater');
-    
+
     setApprovedProducts(approved);
     setRejectedProducts(rejected);
     setReviewLaterProducts(reviewLater);
   };
 
-  const handleStatusUpdate = async (product, newStatus) => {
+  const handleStatusUpdate = async (id, newStatus) => {
     try {
-      await axios.put(`http://localhost:3001/products/${product.id}`, { status: newStatus });
-      fetchProducts();
+      await axios.put(`http://localhost:3001/products/${id}`, { status: newStatus });
+
+      // Update the products array locally instead of refetching
+      const updatedProducts = products.map(product => 
+        product.id === id ? { ...product, status: newStatus } : product
+      );
+
+      setProducts(updatedProducts);
+      filterProducts(updatedProducts);
+
+      // Ensure the selected product remains the same
+      const updatedSelectedProduct = updatedProducts.find(product => product.id === selectedProduct.id);
+      setSelectedProduct(updatedSelectedProduct || null);
     } catch (error) {
       console.error('Error updating product status:', error);
     }
   };
 
-<<<<<<< HEAD
   const handleReject = async (id) => {
     const confirmReject = window.confirm('Are you sure you want to reject this product?');
     if (confirmReject) {
       try {
         await handleStatusUpdate(id, 'Rejected');
-<<<<<<< HEAD
-        const rejectedImage = images.find(image => image.id === id);
-        setRejectedImages([...rejectedImages, { ...rejectedImage, date: new Date().toLocaleString() }]);
-      } catch (error) {
-        console.error('Error rejecting image:', error);
-=======
       } catch (error) {
         console.error('Error rejecting product:', error);
->>>>>>> 4b6bc45b348f99905d891a5f4d4833e101b8231f
       }
     }
   };
 
-<<<<<<< HEAD
-  const handleNext = () => {
-    const nextIndex = (currentIndex + 1) % images.length;
-    setSelectedImage(images[nextIndex]);
-    setCurrentIndex(nextIndex);
-  };
-
-  const handlePrevious = () => {
-    const previousIndex = (currentIndex - 1 + images.length) % images.length;
-    setSelectedImage(images[previousIndex]);
-    setCurrentIndex(previousIndex);
-  };
-
-  const handleAnalyse = async () => {
-    await fetchImages();
-    setShowImages(true);
-  };
-
   const handleApprove = async (id) => {
     await handleStatusUpdate(id, 'Approved');
   };
 
-  return (
-    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif', backgroundColor: 'white', minHeight: '100vh' }}>
-      <h1 style={{ color: 'yellow', fontWeight: 'bold', marginTop: 0 }}>INHABITR</h1>
-      <hr style={{ borderColor: '#ddd', width: '100%', marginBottom: '20px' }} />
-      
-      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-        <p style={{ fontSize: '14px' }}>CREATE SHORTCUT</p>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <p style={{ fontSize: '14px', marginRight: '20px' }}>↑ Key Saves the Updated Image Metadata</p>
-          <p style={{ fontSize: '14px' }}>↓ Key Deletes Current Image</p>
-        </div>
-      </div>
-      
-      <hr style={{ borderColor: '#ddd', width: '100%', marginBottom: '20px' }} />
-
-      <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', marginBottom: '10px' }}>
-        <button 
-          type="button" 
-          onClick={handleAnalyse} 
-          style={{ 
-            padding: '10px 20px', 
-            backgroundColor: 'white', 
-            color: 'black', 
-            border: '1px solid white', 
-            borderRadius: '4px', 
-            cursor: 'pointer', 
-            marginRight: '10px' 
-=======
-  const handleApprove = async (id) => {
-    await handleStatusUpdate(id, 'Approved');
-=======
-  const handleApprove = async () => {
-    if (!selectedProduct) return;
-    await handleStatusUpdate(selectedProduct, 'Approved');
-    if (view === 'approved') {
-      fetchProducts(); // Refresh the list if already viewing approved products
-    }
+  const handleReviewLater = async (id) => {
+    await handleStatusUpdate(id, 'ReviewLater');
   };
 
-  const handleReject = async () => {
-    if (!selectedProduct) return;
-    // Show confirmation dialog before rejecting
-    setShowRejectConfirmation(true);
->>>>>>> dd12d255d807dfbc9978d97d93b8cd88a370ad8b
-  };
-
-  const confirmReject = async () => {
-    // User confirmed rejection, proceed with status update
-    await handleStatusUpdate(selectedProduct, 'Rejected');
-    if (view === 'rejected') {
-      fetchProducts(); // Refresh the list if already viewing rejected products
-    }
-    // Close the confirmation dialog
-    setShowRejectConfirmation(false);
-  };
-
-  const cancelReject = () => {
-    // User cancelled rejection, close the confirmation dialog
-    setShowRejectConfirmation(false);
-  };
-
-  const handleReviewLater = async () => {
-    if (!selectedProduct) return;
-    await handleStatusUpdate(selectedProduct, 'ReviewLater');
-    if (view === 'reviewLater') {
-      fetchProducts(); // Refresh the list if already viewing review later products
+  const handleReviewAgain = async (product) => {
+    try {
+      await handleStatusUpdate(product.id, 'Pending');
+      setSelectedProduct(product);
+      setReviewMode(true);
+      console.log('Product status reset to Pending:', product);
+    } catch (error) {
+      console.error('Error resetting product status:', error);
     }
   };
 
@@ -208,19 +118,23 @@ export default function Home() {
   };
 
   const handleNext = () => {
-    const nextIndex = (currentIndex + 1) % products.length;
-    setSelectedProduct(products[nextIndex]);
-    setCurrentIndex(nextIndex);
+    if (products.length > 0) {
+      const nextIndex = (currentIndex + 1) % products.length;
+      setCurrentIndex(nextIndex);
+      setSelectedProduct(products[nextIndex]);
+    }
   };
 
   const handlePrevious = () => {
-    const previousIndex = (currentIndex - 1 + products.length) % products.length;
-    setSelectedProduct(products[previousIndex]);
-    setCurrentIndex(previousIndex);
+    if (products.length > 0) {
+      const previousIndex = (currentIndex - 1 + products.length) % products.length;
+      setCurrentIndex(previousIndex);
+      setSelectedProduct(products[previousIndex]);
+    }
   };
 
   const renderProductList = (productList, currentPage, handleNextPage, handlePreviousPage) => {
-    // Calculate pagination range
+    const totalPages = Math.ceil(productList.length / itemsPerPage);
     const startIndex = currentPage * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const currentProducts = productList.slice(startIndex, endIndex);
@@ -229,36 +143,75 @@ export default function Home() {
       <div style={{ marginTop: '20px' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ backgroundColor: '#f0f8ff', borderBottom: '1px solid #ddd' }}>
-              <th style={{ padding: '10px', textAlign: 'left' }}>Images</th>
+            <tr style={{ backgroundColor: '#BEE4F4', borderBottom: '1px solid #ddd' }}>
+              <th style={{ padding: '5px', textAlign: 'center' }}>Images</th>
               <th style={{ padding: '10px', textAlign: 'left' }}>Approved On</th>
-              <th style={{ padding: '10px', textAlign: 'left' }}>Actions</th>
+              <th style={{ padding: '10px', textAlign: 'center' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {currentProducts.map((product) => (
               <tr key={product.id} style={{ borderBottom: '1px solid #ddd' }}>
-                <td style={{ padding: '10px', verticalAlign: 'top' }}>
-                  <img src={product.product_image_uri} alt="Product Thumbnail" style={{ width: '50px', height: '50px', objectFit: 'contain' }} />
+                <td style={{ padding: '10px', verticalAlign: 'top', textAlign: 'center' }}>
+                  <img src={product.product_image_uri} alt="Product Thumbnail" style={{ width: '35px', height: '50px', objectFit: 'contain' }} />
                 </td>
-                <td style={{ padding: '10px', verticalAlign: 'top' }}>
+                <td style={{ padding: '10px', verticalAlign: 'middle' }}>
                   {formatDate(product.updated_at)} {/* Display the formatted date */}
                 </td>
-                <td style={{ padding: '10px', verticalAlign: 'top' }}>
-                  <a href="/" style={{ textDecoration: 'underline', color: 'blue', cursor: 'pointer' }}>Analyze Again</a>
+                <td style={{ padding: '10px', verticalAlign: 'middle', textAlign: 'center' }}>
+                  <button onClick={() => handleReviewAgain(product)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#007bff', textDecoration: 'underline' }}>
+                    Analyze again
+                  </button>
                 </td>
               </tr>
             ))}
           </tbody>
           <tfoot>
             <tr>
-              <td colSpan="3" style={{ textAlign: 'center' }}>
-                {currentPage > 0 && (
-                  <button onClick={handlePreviousPage} style={{ marginRight: '10px' }}>Previous Page</button>
-                )}
-                {endIndex < productList.length && (
-                  <button onClick={handleNextPage}>Next Page</button>
-                )}
+              <td colSpan="3" style={{ position: 'relative', textAlign: 'center'}}>
+                <button 
+                  onClick={handlePreviousPage} 
+                  style={{ 
+                    position: 'absolute', 
+                    left: 0, 
+                    padding: '10px 20px', 
+                    backgroundColor: 'white', 
+                    color: 'black',  
+                    border: 'none', 
+                    borderRadius: '5px', 
+                    cursor: currentPage === 0 ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    
+                  }} 
+                  disabled={currentPage === 0}
+                >
+                  <FontAwesomeIcon icon={faArrowLeft} style={{ marginRight: '5px' }} />
+                  Previous 
+                </button>
+                <span style={{ margin: '0 20px' }}>
+                  <span style={{ fontWeight: 'bold' }}> {currentPage + 1}</span>  {totalPages}
+                </span>
+                <button 
+                  onClick={handleNextPage} 
+                  style={{ 
+                    position: 'absolute', 
+                    right: 0, 
+                    padding: '10px 20px', 
+                    backgroundColor: 'white', 
+                    color: 'black',  
+                    border: 'none', 
+                    borderRadius: '5px', 
+                    cursor: endIndex >= productList.length ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    marginLeft: '10px'
+                  }} 
+                  disabled={endIndex >= productList.length}
+                >
+                  Next 
+                  <FontAwesomeIcon icon={faArrowRight} style={{ marginLeft: '5px' }} />
+                </button>
               </td>
             </tr>
           </tfoot>
@@ -267,12 +220,12 @@ export default function Home() {
     );
   };
 
-  // Function to format date as MM/DD/YYYY
-  const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
-  };
-
+// Function to format date as DD/MM/YYYY
+   const formatDate = (dateString) => {
+  const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+  const formattedDate = new Date(dateString).toLocaleDateString('en-GB', options);
+  return formattedDate;
+};
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'ArrowUp') {
@@ -318,24 +271,10 @@ export default function Home() {
             borderRadius: '4px',
             cursor: 'pointer',
             marginRight: '10px'
->>>>>>> 4b6bc45b348f99905d891a5f4d4833e101b8231f
           }}
         >
           Analyse
         </button>
-<<<<<<< HEAD
-        <button 
-          type="button" 
-          onClick={() => setShowImages(true)} 
-          style={{ 
-            padding: '10px 20px', 
-            backgroundColor: 'white', 
-            color: 'black', 
-            border: '1px solid white', 
-            borderRadius: '4px', 
-            cursor: 'pointer', 
-            marginRight: '10px' 
-=======
         <button
           type="button"
           onClick={() => setView('approved')}
@@ -347,24 +286,10 @@ export default function Home() {
             borderRadius: '4px',
             cursor: 'pointer',
             marginRight: '10px'
->>>>>>> 4b6bc45b348f99905d891a5f4d4833e101b8231f
           }}
         >
           Approved
         </button>
-<<<<<<< HEAD
-        <button 
-          type="button" 
-          onClick={() => setShowImages(false)} 
-          style={{ 
-            padding: '10px 20px', 
-            backgroundColor: 'white', 
-            color: 'black', 
-            border: '1px solid white', 
-            borderRadius: '4px', 
-            cursor: 'pointer', 
-            marginRight: '10px' 
-=======
         <button
           type="button"
           onClick={() => setView('rejected')}
@@ -391,58 +316,10 @@ export default function Home() {
             borderRadius: '4px',
             cursor: 'pointer',
             marginRight: '10px'
->>>>>>> 4b6bc45b348f99905d891a5f4d4833e101b8231f
           }}
         >
           Review Later
         </button>
-<<<<<<< HEAD
-<<<<<<< HEAD
-        <button 
-          type="button" 
-          onClick={() => setShowImages(false)} 
-          style={{ 
-            padding: '10px 20px', 
-            backgroundColor: 'white', 
-            color: 'black', 
-            border: '1px solid white', 
-            borderRadius: '4px', 
-            cursor: 'pointer' 
-=======
-        <button
-          type="button"
-          onClick={() => setView('rejected')}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: 'white',
-            color: 'black',
-            border: '1px solid white',
-            borderRadius: '4px',
-            cursor: 'pointer'
->>>>>>> 4b6bc45b348f99905d891a5f4d4833e101b8231f
-          }}
-        >
-          Rejected
-        </button>
-      </div>
-
-<<<<<<< HEAD
-      {showImages && (
-        <div style={{ display: 'flex', gap: '20px', marginTop: '20px', position: 'relative' }}>
-          <div style={{ width: '60%', minWidth: '300px', overflow: 'hidden' }}>
-            {selectedImage && (
-              <div style={{ border: '1px solid #ddd', padding: '20px', boxShadow: '0 0 10px rgba(0,0,0,0.1)', minHeight: '400px', position: 'relative' }}>
-                <img src={selectedImage.url} alt="Uploaded" style={{ width: '100%', maxHeight: '300px', objectFit: 'contain' }} />
-                <div 
-                  style={{ 
-                    position: 'absolute', 
-                    bottom: '10px', 
-                    right: '10px', 
-                    display: 'flex', 
-=======
-      {!reviewMode && view === 'approved' && renderProductList(approvedProducts)}
-      {!reviewMode && view === 'rejected' && renderProductList(rejectedProducts)}
-=======
       </div>
 
       {!reviewMode && view === 'approved' && (
@@ -454,7 +331,6 @@ export default function Home() {
       {!reviewMode && view === 'reviewLater' && (
         renderProductList(reviewLaterProducts, currentPageReviewLater, handleNextPageReviewLater, handlePreviousPageReviewLater)
       )}
->>>>>>> dd12d255d807dfbc9978d97d93b8cd88a370ad8b
 
       {products.length > 0 && (view === 'all' || reviewMode) && (
         <div style={{ display: 'flex', gap: '20px', marginTop: '20px', position: 'relative' }}>
@@ -469,34 +345,13 @@ export default function Home() {
                     right: '10px',
                     display: 'flex',
                     gap: '10px',
->>>>>>> 4b6bc45b348f99905d891a5f4d4833e101b8231f
                     backgroundColor: 'white',
                     borderRadius: '4px',
                     transition: 'background-color 0.3s ease',
                   }}
                 >
                   <button
-<<<<<<< HEAD
-<<<<<<< HEAD
-                    onClick={() => handleApprove(selectedImage.id)}
-                    style={{ 
-                      padding: '10px 20px', 
-                      backgroundColor: '#32cd32', 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '4px', 
-                      cursor: 'pointer', 
-                      marginRight: '10px',
-                      transition: 'background-color 0.3s ease',
-                      ':hover': {
-                        backgroundColor: 'white',
-                        color: '#32cd32',
-                      }
-=======
                     onClick={() => handleApprove(selectedProduct.id)}
-=======
-                    onClick={handleApprove}
->>>>>>> dd12d255d807dfbc9978d97d93b8cd88a370ad8b
                     style={{
                       padding: '10px 20px',
                       backgroundColor: '#1E90FF',
@@ -507,68 +362,32 @@ export default function Home() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
->>>>>>> 4b6bc45b348f99905d891a5f4d4833e101b8231f
                     }}
                   >
                     Approve
                   </button>
                   <button
-<<<<<<< HEAD
-<<<<<<< HEAD
-                    onClick={() => handleReject(selectedImage.id)}
-                    style={{ 
-                      padding: '10px 20px', 
-                      backgroundColor: '#ff4500', 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '4px', 
-                      cursor: 'pointer',
-                      transition: 'background-color 0.3s ease',
-                      ':hover': {
-                        backgroundColor: 'white',
-                        color: '#ff4500',
-                      }
-=======
                     onClick={() => handleReject(selectedProduct.id)}
-=======
-                    onClick={handleReject}
->>>>>>> dd12d255d807dfbc9978d97d93b8cd88a370ad8b
+
                     style={{
                       padding: '10px 20px',
-                      backgroundColor: '#FF6347',
-                      color: 'white',
+                      backgroundColor: 'white',
+                      color: 'black',
                       border: 'none',
                       borderRadius: '4px',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
->>>>>>> 4b6bc45b348f99905d891a5f4d4833e101b8231f
                     }}
                   >
                     Reject
                   </button>
-<<<<<<< HEAD
-                </div>
-                <div style={{ position: 'absolute', bottom: '10px', left: '10px', display: 'flex', alignItems: 'flex-end' }}>
-                  <button 
-                    type="button" 
-                    onClick={handlePrevious}
-                    style={{ 
-                      padding: '10px 20px', 
-                      backgroundColor: '#1e90ff', 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '4px', 
-                      cursor: 'pointer', 
-                      marginRight: '10px',
-                      display: showImages ? 'block' : 'none' // Only display when showImages is true
-=======
                   <button
-                    onClick={handleReviewLater}
+                    onClick={() => handleReviewLater(selectedProduct.id)}
                     style={{
                       padding: '10px 20px',
-                      backgroundColor: '#FFD700',
+                      backgroundColor: '',
                       color: 'black',
                       border: 'none',
                       borderRadius: '4px',
@@ -600,24 +419,10 @@ export default function Home() {
                       border: 'none',
                       borderRadius: '4px',
                       cursor: 'pointer'
->>>>>>> 4b6bc45b348f99905d891a5f4d4833e101b8231f
                     }}
                   >
                     Previous
                   </button>
-<<<<<<< HEAD
-                  <button 
-                    type="button" 
-                    onClick={handleNext}
-                    style={{ 
-                      padding: '10px 20px', 
-                      backgroundColor: '#1e90ff', 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '4px', 
-                      cursor: 'pointer', 
-                      display: showImages ? 'block' : 'none' // Only display when showImages is true
-=======
                   <button
                     type="button"
                     onClick={handleNext}
@@ -628,7 +433,6 @@ export default function Home() {
                       border: 'none',
                       borderRadius: '4px',
                       cursor: 'pointer',
->>>>>>> 4b6bc45b348f99905d891a5f4d4833e101b8231f
                     }}
                   >
                     Next
@@ -638,21 +442,6 @@ export default function Home() {
             )}
           </div>
           <div style={{ width: '40%', minHeight: '400px', overflow: 'hidden' }}>
-<<<<<<< HEAD
-            {selectedImage && (
-              <div style={{ border: '1px solid #ddd', padding: '20px', boxShadow: '0 0 10px rgba(0,0,0,0.1)', minHeight: '400px' }}>
-                <h3>Image Attribute</h3>
-                <div style={{ backgroundColor: '#f4f4f4', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
-                  <p><strong>ID:</strong> {selectedImage.id}</p>
-                  <p><strong>Product ID:</strong> {selectedImage.product_id}</p>
-                  <p><strong>Name:</strong> {selectedImage.name}</p>
-                  <p><strong>Product Image URI:</strong> {selectedImage.product_image_uri}</p>
-                  <p><strong>Description:</strong> {selectedImage.product_description}</p>
-                  <p><strong>Dimensions:</strong> {selectedImage.product_dimensions}</p>
-                  <p><strong>Price:</strong> ${selectedImage.price}</p>
-                  <p><strong>Quantity:</strong> {selectedImage.quantity}</p>
-                  <p><strong>Status:</strong> {selectedImage.status}</p>
-=======
             {selectedProduct && (
               <div style={{ border: '1px solid #ddd', padding: '20px', boxShadow: '0 0 10px rgba(0,0,0,0.1)', minHeight: '400px' }}>
                 <h3>Product Details</h3>
@@ -668,32 +457,15 @@ export default function Home() {
                   <p><strong>Price:</strong> ${selectedProduct.price}</p>
                   <p><strong>Quantity:</strong> {selectedProduct.quantity}</p>
                   <p><strong>Status:</strong> {selectedProduct.status}</p>
-<<<<<<< HEAD
-                  <p><strong>Approved Date:</strong> {selectedProduct.approved_date}</p>
->>>>>>> 4b6bc45b348f99905d891a5f4d4833e101b8231f
-=======
                   <p><strong>Approved Date:</strong> {selectedProduct.updated_at ? formatDate(selectedProduct.updated_at) : ''}</p>
->>>>>>> dd12d255d807dfbc9978d97d93b8cd88a370ad8b
                 </div>
               </div>
             )}
           </div>
         </div>
       )}
-
-      {/* Confirmation Dialog for Reject */}
-      {showRejectConfirmation && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 0 10px rgba(0,0,0,0.3)', maxWidth: '400px', textAlign: 'center' }}>
-            <p>Are you sure you want to delete the image?</p>
-            <p>This action cannot be undone.</p>
-            <div style={{ marginTop: '20px' }}>
-              <button onClick={confirmReject} style={{ padding: '10px 20px', backgroundColor: '#FF6347', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '10px' }}>Delete</button>
-              <button onClick={cancelReject} style={{ padding: '10px 20px', backgroundColor: '#ddd', color: 'black', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
+
+         
