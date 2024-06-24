@@ -447,7 +447,7 @@ export default function Home() {
               <div style={{ border: '1px solid #ddd', padding: '20px', boxShadow: '0 0 10px rgba(0,0,0,0.1)', minHeight: '400px' }}>
                 <h3>Product Details</h3>
                 <div style={{ backgroundColor: '#f4f4f4', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
-                  <p><strong>ID:</strong> {selectedProduct.id}</p>
+                  <p><strong>ID:</strong> {selectedProduct.sgid}</p>
                   <p><strong>Product ID:</strong> {selectedProduct.fdc_product_id}</p>
                   <p><strong>Name:</strong> {selectedProduct.name}</p>
                   <p><strong>Product Image URI:</strong> {selectedProduct.product_image_uri} </p>

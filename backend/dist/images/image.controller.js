@@ -21,6 +21,9 @@ let ImageController = class ImageController {
     constructor(productService) {
         this.productService = productService;
     }
+    async getProductDetails() {
+        return this.productService.getProductDetails();
+    }
     create(createProductDto) {
         return this.productService.create(createProductDto);
     }
@@ -35,13 +38,19 @@ let ImageController = class ImageController {
         return product;
     }
     update(id, updateProductDto) {
-        return this.productService.update(id, updateProductDto);
+        return this.productService.update(+id, updateProductDto);
     }
     remove(id) {
-        return this.productService.remove(id);
+        return this.productService.remove(+id);
     }
 };
 exports.ImageController = ImageController;
+__decorate([
+    (0, common_1.Get)('details'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ImageController.prototype, "getProductDetails", null);
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
@@ -67,14 +76,14 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, update_image_dto_1.UpdateImageDto]),
+    __metadata("design:paramtypes", [String, update_image_dto_1.UpdateImageDto]),
     __metadata("design:returntype", void 0)
 ], ImageController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ImageController.prototype, "remove", null);
 exports.ImageController = ImageController = __decorate([

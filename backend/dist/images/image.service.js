@@ -31,6 +31,19 @@ let ImageService = class ImageService {
     findOne(id) {
         return this.productRepository.findOneBy({ sgid: id });
     }
+    async getProductDetails() {
+        return this.productRepository
+            .createQueryBuilder('product')
+            .select([
+            'product.sku AS product_sku',
+            'variation.sku AS variation_sku',
+            'image.image AS image_name',
+        ])
+            .innerJoin('product.variations', 'variation')
+            .innerJoin('variation.images', 'image')
+            .where('product.sgid = :sgid', { sgid: 2 })
+            .getRawMany();
+    }
     async update(id, updateProductDto) {
         const product = await this.findOne(id);
         if (!product) {

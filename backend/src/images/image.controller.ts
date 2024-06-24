@@ -8,6 +8,11 @@ import { UpdateImageDto } from './dto/update-image.dto';
 export class ImageController {
   constructor(private readonly productService: ImageService) {}
 
+  @Get('details')
+  async getProductDetails() {
+    return this.productService.getProductDetails();
+  }
+
   @Post()
   create(@Body() createProductDto: CreateImageDto) {
     return this.productService.create(createProductDto);
@@ -28,12 +33,12 @@ export class ImageController {
   }
 
   @Put(':id')
-  update(@Param('id') id: number, @Body() updateProductDto: UpdateImageDto) {
-    return this.productService.update(id, updateProductDto);
+  update(@Param('id') id: string, @Body() updateProductDto: UpdateImageDto) {
+    return this.productService.update(+id, updateProductDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.productService.remove(id);
+  remove(@Param('id') id: string) {
+    return this.productService.remove(+id);
   }
 }

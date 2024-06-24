@@ -8,6 +8,7 @@ export declare class ImageService {
     create(createProductDto: CreateImageDto): Promise<Product>;
     findAll(): Promise<Product[]>;
     findOne(id: number): Promise<Product>;
+    getProductDetails(): Promise<any[]>;
     update(id: number, updateProductDto: UpdateImageDto): Promise<Product>;
     remove(id: number): Promise<void>;
 }

@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductImage = void 0;
 const typeorm_1 = require("typeorm");
 const image_entity_1 = require("./image.entity");
+const image_sku_entity_1 = require("./image-sku.entity");
 let ProductImage = class ProductImage {
 };
 exports.ProductImage = ProductImage;
@@ -40,7 +41,13 @@ __decorate([
     __metadata("design:type", String)
 ], ProductImage.prototype, "alt_text", void 0);
 __decorate([
+    (0, typeorm_1.ManyToOne)(() => image_sku_entity_1.ProductSkuVariation, skuVariation => skuVariation.productImages),
+    (0, typeorm_1.JoinColumn)({ name: 'sku_variation_id' }),
+    __metadata("design:type", image_sku_entity_1.ProductSkuVariation)
+], ProductImage.prototype, "skuVariation", void 0);
+__decorate([
     (0, typeorm_1.ManyToOne)(() => image_entity_1.Product, product => product.productImages),
+    (0, typeorm_1.JoinColumn)({ name: 'product_id' }),
     __metadata("design:type", image_entity_1.Product)
 ], ProductImage.prototype, "product", void 0);
 exports.ProductImage = ProductImage = __decorate([
