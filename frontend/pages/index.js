@@ -33,6 +33,21 @@ export default function Home() {
     }
   };
 
+  const fetchProductsDetails = async () => {
+    try {
+      const response = await axios.get('http://localhost:3001/products/details');
+      const baseUrl = 'https://d12kqwzvfrkt5o.cloudfront.net/products'
+      const imageUrls = response.data.map(item => `${baseUrl}/${item}`);
+      console.log(JSON.stringify(response.data));
+      console.log(imageUrls);
+      setProducts(response.data);
+      setSelectedProduct(response.data[0]); // Select the first product by default
+      filterProducts(response.data);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
+  };
+
   const filterProducts = (products) => {
     const approved = products.filter(product => product.status === 'Approved');
     const rejected = products.filter(product => product.status === 'Rejected');
@@ -275,6 +290,21 @@ export default function Home() {
           }}
         >
           Analyse
+        </button>
+        <button
+          type="button"
+          onClick={() => { fetchProductsDetails() }}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: 'white',
+            color: 'black',
+            border: '1px solid white',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            marginRight: '10px'
+          }}
+        >
+          Product details
         </button>
         <button
           type="button"

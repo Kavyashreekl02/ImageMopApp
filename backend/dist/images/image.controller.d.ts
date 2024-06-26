@@ -4,7 +4,7 @@ import { UpdateImageDto } from './dto/update-image.dto';
 export declare class ImageController {
     private readonly productService;
     constructor(productService: ImageService);
-    getProductDetails(): Promise<any[]>;
+    getProductDetails(): Promise<string[]>;
     create(createProductDto: CreateImageDto): Promise<import("./entities/image.entity").Product>;
     findAll(): Promise<import("./entities/image.entity").Product[]>;
     findOne(id: string): Promise<import("./entities/image.entity").Product>;
