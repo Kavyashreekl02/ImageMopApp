@@ -31,17 +31,22 @@ export class ImageService {
 
   // Method to get product details with specific query
   async getProductDetails() {
-    return this.productRepository
-      .createQueryBuilder('product')
+    const imageResult = await this.productRepository
+      .createQueryBuilder('p')
       .select([
-        'product.sku AS product_sku',
-        'variation.sku AS variation_sku',
-        'image.image AS image_name',
+        'p.sgid AS product_sgid',
+        'psv.sku_variation AS variation_sku',
+        'pi.image_name AS image_name',
       ])
-      .innerJoin('product.variations', 'variation')
-      .innerJoin('variation.images', 'image')
-      .where('product.sgid = :sgid', { sgid: 2 })
+      .innerJoin('p.productSkuVariations', 'psv')
+      .innerJoin('psv.productImages', 'pi')
+      .where('p.sgid = :sgid', { sgid: 1 })
       .getRawMany();
+      /*console.log(`imageResult: ${JSON.stringify(imageResult)}`);*/
+      const imagePathArray = imageResult.map(item => `${item.product_sgid}/${item.variation_sku}/${item.image_name}`);
+      console.log(`imagePathArray: ${JSON.stringify(imagePathArray)}`);
+      return imagePathArray
+
   }
 
   // Method to update a product by ID
