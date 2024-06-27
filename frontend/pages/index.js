@@ -22,26 +22,29 @@ export default function Home() {
     fetchProducts();
   }, []);
 
-
   const fetchProducts = async () => {
     try {
+      const response = await axios.get('http://localhost:3001/product');
+      setProducts(response.data);
+      setSelectedProduct(response.data[0]); // Select the first product by default
+      filterProducts(response.data);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
+  };
+
+  const fetchProductsDetails = async () => {
+    try {
       const response = await axios.get('http://localhost:3001/product/details');
-      const baseUrl = 'https://d12kqwzvfrkt5o.cloudfront.net/products';
-      const imageUrls = response.data.map(item => ({
-        product_sgid: item.product_sgid,
-        variation_sgid: item.variation_sgid,
-        image_url: `${baseUrl}/${item.product_sgid}/${item.variation_sgid}/${item.image_name}`,
-        alt_text: item.alt_text,
-        is_default: item.is_default,
-        sort_order: item.sort_order,
-      }));
+      const baseUrl = 'https://d12kqwzvfrkt5o.cloudfront.net/products'
+      const imageUrls = response.data.map(item => `${baseUrl}/${item}`);
       console.log(JSON.stringify(response.data));
       console.log(imageUrls);
-      setProducts(imageUrls);
-      setSelectedProduct(imageUrls[0]); // Select the first product by default
-      filterProducts(imageUrls);
+      setProducts(response.data);
+      setSelectedProduct(response.data[0]); // Select the first product by default
+      filterProducts(response.data);
     } catch (error) {
-      console.error('Error fetching product details:', error);
+      console.error('Error fetching products:', error);
     }
   };
 
@@ -288,7 +291,21 @@ export default function Home() {
         >
           Analyse
         </button>
-
+        <button
+          type="button"
+          onClick={() => { fetchProductsDetails() }}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: 'white',
+            color: 'black',
+            border: '1px solid white',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            marginRight: '10px'
+          }}
+        >
+          Product details
+        </button>
         <button
           type="button"
           onClick={() => setView('approved')}
