@@ -3,22 +3,19 @@ import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateCol
 import { ProductImage } from './image-image.entity';
 import { ProductSkuVariation } from './image-sku.entity';
 
-@Entity('products')
+@Entity('product')
 export class Product {
   @PrimaryGeneratedColumn()
   sgid: number;
 
-  @Column()
+  @Column({ nullable: true })
   name: string;
 
   @Column({ nullable: true })
-  product_image_uri: string;
+  sku: string;
 
   @Column('text')
-  product_description: string;
-
-  @Column({ nullable: true })
-  product_dimensions: string;
+  description: string;
 
   @CreateDateColumn()
   created_at: Date;
@@ -26,13 +23,7 @@ export class Product {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @Column('float')
-  price: number;
-
-  @Column('int')
-  quantity: number;
-
-  @Column()
+  @Column({ nullable: true })
   status: string;
 
   @OneToMany(() => ProductImage, productImage => productImage.product)

@@ -9,10 +9,22 @@ export class ProductImage {
   sgid: number;
 
   @Column({ nullable: true })
+  product_id: string;
+
+  @Column({ nullable: true })
   sku_variation: string;
 
   @Column({ nullable: true })
   image_name: string;
+
+  @Column({ nullable: true })
+  alt_text: string;
+
+  @Column({ nullable: true })
+  is_default: string;
+
+  @Column({ nullable: true })
+  sort_order: string;
 
   @CreateDateColumn()
   created_at: Date;
@@ -20,11 +32,8 @@ export class ProductImage {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @Column({ nullable: true })
-  alt_text: string;
-
   @ManyToOne(() => ProductSkuVariation, skuVariation => skuVariation.productImages)
-  @JoinColumn({ name: 'sku_variation_id' })
+  @JoinColumn({ name: 'sku_variation' })
   skuVariation: ProductSkuVariation;
 
   @ManyToOne(() => Product, product => product.productImages)

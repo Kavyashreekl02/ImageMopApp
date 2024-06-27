@@ -13,10 +13,10 @@ export class ProductSkuVariation {
 
 
   @Column({ nullable: true })
-  sku_variation: string;
+  sku: string;
 
   @Column({ nullable: true })
-  image_name: string;
+  asset_value: string;
 
   @CreateDateColumn()
   created_at: Date;
@@ -24,8 +24,6 @@ export class ProductSkuVariation {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @Column({ nullable: true })
-  alt_text: string;
 
   @ManyToOne(() => Product, product => product.productSkuVariations)
   @JoinColumn({ name: 'product_id' })
