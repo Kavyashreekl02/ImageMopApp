@@ -22,6 +22,7 @@ export default function Home() {
     fetchProducts();
   }, []);
 
+  
   const fetchProducts = async () => {
     try {
       const response = await axios.get('http://localhost:3001/product');
@@ -33,20 +34,33 @@ export default function Home() {
     }
   };
 
-  const fetchProductsDetails = async () => {
+  const fetchProductsDetails = async (index) => {
     try {
       const response = await axios.get('http://localhost:3001/product/details');
-      const baseUrl = 'https://d12kqwzvfrkt5o.cloudfront.net/products'
-      const imageUrls = response.data.map(item => `${baseUrl}/${item}`);
-      console.log(JSON.stringify(response.data));
-      console.log(imageUrls);
-      setProducts(response.data);
-      setSelectedProduct(response.data[0]); // Select the first product by default
-      filterProducts(response.data);
+      const baseUrl = 'https://d12kqwzvfrkt5o.cloudfront.net/products';
+      const imageUrls = response.data.map(item => ({
+        product_sgid: item.product_sgid,
+        variation_sgid: item.variation_sgid,
+        image_url: `${baseUrl}/${item.product_sgid}/${item.variation_sgid}/${item.image_name}`,
+        alt_text: item.alt_text,
+        is_default: item.is_default,
+        sort_order: item.sort_order,
+      }));
+
+      const updatedProducts = [...products];
+      updatedProducts[index] = { 
+        ...updatedProducts[index], 
+        product_images: imageUrls 
+      };
+      setProducts(updatedProducts);
+      setSelectedProduct(updatedProducts[index]); // Select the fetched product
+      filterProducts(updatedProducts);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error('Error fetching product details:', error);
     }
   };
+
+
 
   const filterProducts = (products) => {
     const approved = products.filter(product => product.status === 'Approved');
