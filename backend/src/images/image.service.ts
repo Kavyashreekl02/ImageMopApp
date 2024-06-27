@@ -36,8 +36,8 @@ export class ImageService {
   async getProductDetails() {
     const imageResult = await this.productRepository
       .createQueryBuilder('p')
-      .leftJoinAndSelect('p.skuVariations', 'psv')
-      .leftJoinAndSelect('psv.images', 'pi')
+      .leftJoinAndSelect('p.productSkuVariations', 'psv')
+      .leftJoinAndSelect('psv.productImages', 'pi')
       .select([
         'p.sgid AS product_sgid',
         'psv.sgid AS variation_sgid',
