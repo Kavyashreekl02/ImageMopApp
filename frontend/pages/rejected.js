@@ -10,7 +10,7 @@ const Rejected = () => {
 
   const fetchRejectedImages = async () => {
     try {
-      const response = await axios.get('http://localhost:3001/images');
+      const response = await axios.get('http://localhost:3001/product');
       const rejectedImages = response.data.filter(image => image.status === 'Rejected');
       setImages(rejectedImages);
     } catch (error) {
