@@ -4,7 +4,7 @@ import { ImageService } from './image.service';
 import { CreateImageDto } from './dto/create-image.dto';
 import { UpdateImageDto } from './dto/update-image.dto';
 
-@Controller('products')
+@Controller('product')
 export class ImageController {
   constructor(private readonly productService: ImageService) {}
 

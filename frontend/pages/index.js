@@ -24,7 +24,7 @@ export default function Home() {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('http://localhost:3001/products');
+      const response = await axios.get('http://localhost:3001/product');
       setProducts(response.data);
       setSelectedProduct(response.data[0]); // Select the first product by default
       filterProducts(response.data);
@@ -35,19 +35,26 @@ export default function Home() {
 
   const fetchProductsDetails = async () => {
     try {
-      const response = await axios.get('http://localhost:3001/products/details');
-      const baseUrl = 'https://d12kqwzvfrkt5o.cloudfront.net/products'
-      const imageUrls = response.data.map(item => `${baseUrl}/${item}`);
+      const response = await axios.get('http://localhost:3001/product/details');
+      const baseUrl = 'https://d12kqwzvfrkt5o.cloudfront.net/products';
+      const imageUrls = response.data.map(item => ({
+        product_sgid: item.product_sgid,
+        variation_sgid: item.variation_sgid,
+        image_url: `${baseUrl}/${item.product_sgid}/${item.variation_sgid}/${item.image_name}`,
+        alt_text: item.alt_text,
+        is_default: item.is_default,
+        sort_order: item.sort_order,
+      }));
       console.log(JSON.stringify(response.data));
       console.log(imageUrls);
-      setProducts(response.data);
-      setSelectedProduct(response.data[0]); // Select the first product by default
-      filterProducts(response.data);
+      setProducts(imageUrls);
+      setSelectedProduct(imageUrls[0]); // Select the first product by default
+      filterProducts(imageUrls);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error('Error fetching product details:', error);
     }
   };
-
+  
   const filterProducts = (products) => {
     const approved = products.filter(product => product.status === 'Approved');
     const rejected = products.filter(product => product.status === 'Rejected');
@@ -60,7 +67,7 @@ export default function Home() {
 
   const handleStatusUpdate = async (sgid, newStatus) => {
     try {
-      await axios.put(`http://localhost:3001/products/${sgid}`, { status: newStatus });
+      await axios.put(`http://localhost:3001/product/${sgid}`, { status: newStatus });
 
       // Update the products array locally instead of refetching
       const updatedProducts = products.map(product =>
@@ -475,7 +482,7 @@ export default function Home() {
           <div style={{ width: '40%', minHeight: '400px', overflow: 'hidden' }}>
             {selectedProduct && (
               <div style={{ border: '1px solid #ddd', padding: '20px', boxShadow: '0 0 10px rgba(0,0,0,0.1)', minHeight: '400px' }}>
-                <h3>Product Details</h3>
+                <h3>Image Attributes</h3>
                 <div style={{ backgroundColor: '#f4f4f4', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
                   <p><strong>ID:</strong> {selectedProduct.sgid}</p>
                   <p><strong>Product ID:</strong> {selectedProduct.fdc_product_id}</p>
