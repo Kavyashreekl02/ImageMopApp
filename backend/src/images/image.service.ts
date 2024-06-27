@@ -36,28 +36,20 @@ export class ImageService {
   async getProductDetails() {
     const imageResult = await this.productRepository
       .createQueryBuilder('p')
-      .leftJoinAndSelect('p.productSkuVariations', 'psv')
-      .leftJoinAndSelect('psv.productImages', 'pi')
       .select([
         'p.sgid AS product_sgid',
-        'psv.sgid AS variation_sgid',
+        'psv.sku AS variation_sku',
         'pi.image_name AS image_name',
-        'pi.alt_text AS alt_text',
-        'pi.is_default AS is_default',
-        'pi.sort_order AS sort_order',
       ])
+      .innerJoin('p.productSkuVariations', 'psv')
+      .innerJoin('psv.productImages', 'pi')
+      .where('p.sgid = :sgid', { sgid: 1 })
       .getRawMany();
+      /*console.log(`imageResult: ${JSON.stringify(imageResult)}`);*/
+      const imagePathArray = imageResult.map(item => `${item.product_sgid}/${item.variation_sku}/${item.image_name}`);
+     
+      return imagePathArray
 
-    const imagePathArray = imageResult.map(item => ({
-      product_sgid: item.product_sgid,
-      variation_sgid: item.variation_sgid,
-      image_name: item.image_name,
-      alt_text: item.alt_text,
-      is_default: item.is_default,
-      sort_order: item.sort_order,
-    }));
-    console.log(`imagePathArray: ${JSON.stringify(imagePathArray)}`);
-    return imagePathArray;
   }
 
   // Method to update a product by ID
