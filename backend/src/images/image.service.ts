@@ -5,12 +5,15 @@ import { Repository } from 'typeorm';
 import { CreateImageDto } from './dto/create-image.dto';
 import { UpdateImageDto } from './dto/update-image.dto';
 import { Product } from './entities/image.entity';
+import { ProductImage } from './entities/image-image.entity';
 
 @Injectable()
 export class ImageService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    @InjectRepository(ProductImage)
+    private readonly productImageRepository: Repository<ProductImage>,
   ) {}
 
   // Method to create a new product
@@ -33,20 +36,28 @@ export class ImageService {
   async getProductDetails() {
     const imageResult = await this.productRepository
       .createQueryBuilder('p')
+      .leftJoinAndSelect('p.skuVariations', 'psv')
+      .leftJoinAndSelect('psv.images', 'pi')
       .select([
         'p.sgid AS product_sgid',
-        'psv.sku_variation AS variation_sku',
+        'psv.sgid AS variation_sgid',
         'pi.image_name AS image_name',
+        'pi.alt_text AS alt_text',
+        'pi.is_default AS is_default',
+        'pi.sort_order AS sort_order',
       ])
-      .innerJoin('p.productSkuVariations', 'psv')
-      .innerJoin('psv.productImages', 'pi')
-      .where('p.sgid = :sgid', { sgid: 1 })
       .getRawMany();
-      /*console.log(`imageResult: ${JSON.stringify(imageResult)}`);*/
-      const imagePathArray = imageResult.map(item => `${item.product_sgid}/${item.variation_sku}/${item.image_name}`);
-      console.log(`imagePathArray: ${JSON.stringify(imagePathArray)}`);
-      return imagePathArray
 
+    const imagePathArray = imageResult.map(item => ({
+      product_sgid: item.product_sgid,
+      variation_sgid: item.variation_sgid,
+      image_name: item.image_name,
+      alt_text: item.alt_text,
+      is_default: item.is_default,
+      sort_order: item.sort_order,
+    }));
+    console.log(`imagePathArray: ${JSON.stringify(imagePathArray)}`);
+    return imagePathArray;
   }
 
   // Method to update a product by ID
