@@ -492,15 +492,12 @@ export default function Home() {
                 <h3>Image Attributes</h3>
                 <div style={{ backgroundColor: '#f4f4f4', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
                   <p><strong>ID:</strong> {selectedProduct.sgid}</p>
-                  <p><strong>Product ID:</strong> {selectedProduct.fdc_product_id}</p>
-                  <p><strong>Name:</strong> {selectedProduct.name}</p>
-                  <p><strong>Product Image URI:</strong> {selectedProduct.product_image_uri} </p>
-                  <p><strong>Description:</strong> {selectedProduct.product_description}</p>
+                  <p><strong>Product ID:</strong> {selectedProduct.sku}</p>
+                  <p><strong>Name:</strong> {selectedProduct.image_name}</p>
+                  <p><strong>Description:</strong> {selectedProduct.description}</p>
                   <p><strong>Dimensions:</strong> {selectedProduct.product_dimensions}</p>
                   <p><strong>Created At:</strong> {selectedProduct.created_at}</p>
                   <p><strong>Updated At:</strong> {selectedProduct.updated_at}</p>
-                  <p><strong>Price:</strong> ${selectedProduct.price}</p>
-                  <p><strong>Quantity:</strong> {selectedProduct.quantity}</p>
                   <p><strong>Status:</strong> {selectedProduct.status}</p>
                   <p><strong>Approved Date:</strong> {selectedProduct.updated_at ? formatDate(selectedProduct.updated_at) : ''}</p>
                 </div>
