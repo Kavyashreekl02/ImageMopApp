@@ -9,21 +9,19 @@ export class ProductSkuVariation {
   sgid: number;
 
   @Column({ nullable: true })
-  product_id: string;
+  product_id: number;
 
-
-  @Column({ nullable: true })
+  @Column({ length: 10, nullable: true })
   sku: string;
 
-  @Column({ nullable: true })
-  asset_value: string;
+  @Column({ type: 'double precision', nullable: true })
+  asset_value: number;
 
   @CreateDateColumn()
   created_at: Date;
 
   @UpdateDateColumn()
   updated_at: Date;
-
 
   @ManyToOne(() => Product, product => product.productSkuVariations)
   @JoinColumn({ name: 'product_id' })

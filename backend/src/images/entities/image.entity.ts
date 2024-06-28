@@ -8,10 +8,10 @@ export class Product {
   @PrimaryGeneratedColumn()
   sgid: number;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, length: 300 })
   name: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, length: 10 })
   sku: string;
 
   @Column('text')
@@ -23,13 +23,10 @@ export class Product {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @Column({ nullable: true })
-  status: string;
-
-
   @OneToMany(() => ProductImage, productImage => productImage.product)
   productImages: ProductImage[];
 
   @OneToMany(() => ProductSkuVariation, productSkuVariation => productSkuVariation.product)
   productSkuVariations: ProductSkuVariation[];
 }
+
