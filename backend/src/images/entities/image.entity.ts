@@ -26,6 +26,7 @@ export class Product {
   @Column({ nullable: true })
   status: string;
 
+
   @OneToMany(() => ProductImage, productImage => productImage.product)
   productImages: ProductImage[];
 

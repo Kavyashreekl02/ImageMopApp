@@ -15,8 +15,8 @@ import { ProductSkuVariation } from './images/entities/image-sku.entity';
       username: 'postgres',
       password: 'root',
       database: 'nestapp',
-      entities: [Product, ProductImage, ProductSkuVariation],
-      synchronize: true,
+      entities: [Product, ProductImage, ProductSkuVariation], // Specify your entities here
+      synchronize: false, // Don't synchronize with the database
       logging: true,
     }),
     ProductModule,
