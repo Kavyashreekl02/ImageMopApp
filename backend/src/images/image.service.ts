@@ -43,7 +43,7 @@ export class ImageService {
       ])
       .innerJoin('p.productSkuVariations', 'psv')
       .innerJoin('psv.productImages', 'pi')
-      .where('p.sgid = :sgid', { sgid: 1 })
+   
       .getRawMany();
       /*console.log(`imageResult: ${JSON.stringify(imageResult)}`);*/
       const imagePathArray = imageResult.map(item => `${item.product_sgid}/${item.variation_sku}/${item.image_name}`);
