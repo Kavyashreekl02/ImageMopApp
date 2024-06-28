@@ -396,6 +396,41 @@ export default function Home() {
                   }}
                 >
                   <button
+                    onClick={() => handleReviewLater(selectedProduct.sgid)}
+                    style={{
+                      padding: '10px 20px',
+                      backgroundColor: 'white',
+                      color: 'black',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    Review Later
+                  </button>
+
+                  <button
+                    onClick={() => handleReject(selectedProduct.sgid)}
+
+                    style={{
+                      padding: '10px 20px',
+                      backgroundColor: 'white',
+                      color: 'black',
+                      border: '1px solid #1E90FF',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    Reject
+                  </button>
+
+                  <button
                     onClick={() => handleApprove(selectedProduct.sgid)}
                     style={{
                       padding: '10px 20px',
@@ -411,39 +446,8 @@ export default function Home() {
                   >
                     Approve
                   </button>
-                  <button
-                    onClick={() => handleReject(selectedProduct.sgid)}
-
-                    style={{
-                      padding: '10px 20px',
-                      backgroundColor: 'white',
-                      color: 'black',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    Reject
-                  </button>
-                  <button
-                    onClick={() => handleReviewLater(selectedProduct.sgid)}
-                    style={{
-                      padding: '10px 20px',
-                      backgroundColor: '',
-                      color: 'black',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    Review Later
-                  </button>
+                  
+                  
                 </div>
                 <div
                   style={{
@@ -491,16 +495,22 @@ export default function Home() {
               <div style={{ border: '1px solid #ddd', padding: '20px', boxShadow: '0 0 10px rgba(0,0,0,0.1)', minHeight: '400px' }}>
                 <h3>Image Attributes</h3>
                 <div style={{ backgroundColor: '#f4f4f4', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
-                  <p><strong>ID:</strong> {selectedProduct.sgid}</p>
-                  <p><strong>Product ID:</strong> {selectedProduct.sku}</p>
-                  <p><strong>Name:</strong> {selectedProduct.image_name}</p>
-                  <p><strong>Description:</strong> {selectedProduct.description}</p>
-                  <p><strong>Dimensions:</strong> {selectedProduct.product_dimensions}</p>
-                  <p><strong>Created At:</strong> {selectedProduct.created_at}</p>
-                  <p><strong>Updated At:</strong> {selectedProduct.updated_at}</p>
-                  <p><strong>Status:</strong> {selectedProduct.status}</p>
-                  <p><strong>Approved Date:</strong> {selectedProduct.updated_at ? formatDate(selectedProduct.updated_at) : ''}</p>
-                </div>
+  {selectedProduct && (
+    <pre style={{ whiteSpace: 'pre-wrap', fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
+      {`{
+  "ID": "${selectedProduct.sgid}",
+  "Product ID": "${selectedProduct.sku}",
+  "Name": "${selectedProduct.image_name || ''}",
+  "Description": "${selectedProduct.description || ''}",
+  "Dimensions": "${selectedProduct.product_dimensions || ''}",
+  "Created At": "${selectedProduct.created_at || ''}",
+  "Updated At": "${selectedProduct.updated_at || ''}",
+  "Status": "${selectedProduct.status || ''}",
+  "Approved Date": "${selectedProduct.updated_at ? formatDate(selectedProduct.updated_at) : ''}"
+}`}
+    </pre>
+  )}
+</div>
               </div>
             )}
           </div>
