@@ -3,6 +3,9 @@ import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import '@fortawesome/fontawesome-free/css/all.css';
+import { faCopy, faEdit } from '@fortawesome/free-solid-svg-icons';
+
+
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -493,7 +496,30 @@ export default function Home() {
           <div style={{ width: '40%', minHeight: '400px', overflow: 'hidden' }}>
             {selectedProduct && (
               <div style={{ border: '1px solid #ddd', padding: '20px', boxShadow: '0 0 10px rgba(0,0,0,0.1)', minHeight: '400px' }}>
-                <h3>Image Attributes</h3>
+                <h3 style={{ 
+    border: '1px solid #ddd', 
+    padding: '10px 20px', 
+    margin: 0, 
+    boxShadow: '0 0 10px rgba(0,0,0,0.1)', 
+    display: 'flex', 
+    justifyContent: 'space-between', 
+    alignItems: 'center' 
+}}>
+    <span>Image Attributes</span>
+    <span>
+        <FontAwesomeIcon 
+            icon={faCopy} 
+            style={{ marginRight: '10px', cursor: 'pointer', color: 'black'}} 
+            onClick={() => handleCopy(/* Add the relevant text to copy here */)} 
+        />
+        <FontAwesomeIcon 
+            icon={faEdit} 
+            style={{ cursor: 'pointer', color: 'black'}} 
+            onClick={() => handleEdit(/* Add the relevant function or URL here */)} 
+        />
+    </span>
+</h3>
+
                 <div style={{ backgroundColor: '#f4f4f4', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
   {selectedProduct && (
     <pre style={{ whiteSpace: 'pre-wrap', fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
