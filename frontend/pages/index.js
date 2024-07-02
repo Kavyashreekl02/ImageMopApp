@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faArrowRight, faCopy, faEdit } from '@fortawesome/free-solid-svg-icons';
 import '@fortawesome/fontawesome-free/css/all.css';
-import { faCopy, faEdit } from '@fortawesome/free-solid-svg-icons';
-
-
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -31,9 +28,6 @@ export default function Home() {
       const imageUrlParts = selectedProduct.product_images[0].image_url.split('/');
       const productSku = imageUrlParts[4];
       const variationSku = imageUrlParts[5];
-      console.log("Selected Product: ", selectedProduct);
-      console.log("Product SKU: ", productSku);
-      console.log("Variation SKU: ", variationSku);
       if (productSku && variationSku) {
         fetchImageAttributes(productSku, variationSku).then(attributes => {
           setImageAttributes(attributes);
@@ -53,10 +47,11 @@ export default function Home() {
           id: index,
           product_images: product.image_url ? [{ image_url: product.image_url }] : [],
         }));
+        
         setProducts(productsWithImages);
         setSelectedProduct(productsWithImages[0]);
         setCurrentIndex(0);
-        console.log('Fetched product details:', productsWithImages);
+        setView('all');
       } else {
         console.error('No products found in the response.');
       }
@@ -127,7 +122,6 @@ export default function Home() {
       await handleStatusUpdate(product.sgid, 'Pending');
       setSelectedProduct(product);
       setReviewMode(true);
-      console.log('Product status reset to Pending:', product);
     } catch (error) {
       console.error('Error resetting product status:', error);
     }
@@ -309,7 +303,7 @@ export default function Home() {
       <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', marginBottom: '10px' }}>
         <button
           type="button"
-          onClick={() => { fetchProductsDetails() }}
+          onClick={() => { setView('all'); fetchProductsDetails(); }}
           style={{
             padding: '10px 20px',
             backgroundColor: 'white',
@@ -499,28 +493,28 @@ export default function Home() {
             {selectedProduct && (
               <div style={{ border: '1px solid #ddd', padding: '20px', boxShadow: '0 0 10px rgba(0,0,0,0.1)', minHeight: '400px' }}>
                 <h3 style={{ 
-    border: '1px solid #ddd', 
-    padding: '10px 20px', 
-    margin: 0, 
-    boxShadow: '0 0 10px rgba(0,0,0,0.1)', 
-    display: 'flex', 
-    justifyContent: 'space-between', 
-    alignItems: 'center' 
-}}>
-    <span>Image Attributes</span>
-    <span>
-        <FontAwesomeIcon 
-            icon={faCopy} 
-            style={{ marginRight: '10px', cursor: 'pointer', color: 'black'}} 
-            onClick={() => handleCopy(/* Add the relevant text to copy here */)} 
-        />
-        <FontAwesomeIcon 
-            icon={faEdit} 
-            style={{ cursor: 'pointer', color: 'black'}} 
-            onClick={() => handleEdit(/* Add the relevant function or URL here */)} 
-        />
-    </span>
-</h3>
+                    border: '1px solid #ddd', 
+                    padding: '10px 20px', 
+                    margin: 0, 
+                    boxShadow: '0 0 10px rgba(0,0,0,0.1)', 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center' 
+                }}>
+                    <span>Image Attributes</span>
+                    <span>
+                        <FontAwesomeIcon 
+                            icon={faCopy} 
+                            style={{ marginRight: '10px', cursor: 'pointer', color: 'black'}} 
+                            onClick={() => handleCopy()} 
+                        />
+                        <FontAwesomeIcon 
+                            icon={faEdit} 
+                            style={{ cursor: 'pointer', color: 'black'}} 
+                            onClick={() => handleEdit()} 
+                        />
+                    </span>
+                </h3>
 
                 <div style={{ backgroundColor: '#f4f4f4', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
                   {imageAttributes ? (
@@ -532,8 +526,6 @@ export default function Home() {
   "Alt_text": "${imageAttributes.alt_text}"
   "Created_at": "${imageAttributes.created_at}"
   "Updated_at": "${imageAttributes.updated_at}"
-  
-
 }`}
                     </pre>
                   ) : (
