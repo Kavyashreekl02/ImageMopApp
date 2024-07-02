@@ -12,6 +12,7 @@ export default function Home() {
   const [approvedProducts, setApprovedProducts] = useState([]);
   const [reviewLaterProducts, setReviewLaterProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [imageAttributes, setImageAttributes] = useState(null);
   const [reviewMode, setReviewMode] = useState(false);
   const [currentPageApproved, setCurrentPageApproved] = useState(0);
   const [currentPageRejected, setCurrentPageRejected] = useState(0);
@@ -22,16 +23,23 @@ export default function Home() {
     fetchProductsDetails();
   }, []);
 
-  const fetchProducts = async () => {
-    try {
-      const response = await axios.get('http://localhost:3001/product');
-      setProducts(response.data);
-      setSelectedProduct(response.data[0]);
-      filterProducts(response.data);
-    } catch (error) {
-      console.error('Error fetching products:', error);
+  useEffect(() => {
+    if (selectedProduct && selectedProduct.product_images.length > 0) {
+      const imageUrlParts = selectedProduct.product_images[0].image_url.split('/');
+      const productSku = imageUrlParts[4];
+      const variationSku = imageUrlParts[5];
+      console.log("Selected Product: ", selectedProduct);
+      console.log("Product SKU: ", productSku);
+      console.log("Variation SKU: ", variationSku);
+      if (productSku && variationSku) {
+        fetchImageAttributes(productSku, variationSku).then(attributes => {
+          setImageAttributes(attributes);
+        });
+      } else {
+        console.error('Product SKU or Variation SKU is undefined');
+      }
     }
-  };
+  }, [selectedProduct]);
 
   const fetchProductsDetails = async () => {
     try {
@@ -51,6 +59,16 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error fetching products:', error);
+    }
+  };
+
+  const fetchImageAttributes = async (productSku, variationSku) => {
+    try {
+      const response = await axios.get(`http://localhost:3001/product/image-attributes/${productSku}/${variationSku}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching image attributes:', error);
+      return null;
     }
   };
 
@@ -288,21 +306,6 @@ export default function Home() {
       <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', marginBottom: '10px' }}>
         <button
           type="button"
-          onClick={() => { setView('all'); setReviewMode(false); }}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: 'white',
-            color: 'black',
-            border: '1px solid white',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            marginRight: '10px'
-          }}
-        >
-          Analyse
-        </button>
-        <button
-          type="button"
           onClick={() => { fetchProductsDetails() }}
           style={{
             padding: '10px 20px',
@@ -494,20 +497,21 @@ export default function Home() {
               <div style={{ border: '1px solid #ddd', padding: '20px', boxShadow: '0 0 10px rgba(0,0,0,0.1)', minHeight: '400px' }}>
                 <h3>Image Attributes</h3>
                 <div style={{ backgroundColor: '#f4f4f4', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
-                  {selectedProduct && (
+                  {imageAttributes ? (
                     <pre style={{ whiteSpace: 'pre-wrap', fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
                       {`{
-  "ID": "${selectedProduct.sgid}",
-  "Product ID": "${selectedProduct.sku}",
-  "Name": "${selectedProduct.name || ''}",
-  "Description": "${selectedProduct.description || ''}",
-  "Dimensions": "${selectedProduct.product_dimensions || ''}",
-  "Created At": "${selectedProduct.created_at || ''}",
-  "Updated At": "${selectedProduct.updated_at || ''}",
-  "Status": "${selectedProduct.status || ''}",
-  "Approved Date": "${selectedProduct.updated_at ? formatDate(selectedProduct.updated_at) : ''}",
+  "Product SKU": "${imageAttributes.product_id}",
+  "Variation SKU": "${imageAttributes.sku_variation_id}",
+  "Image Name": "${imageAttributes.image_name}"
+  "Alt_text": "${imageAttributes.alt_text}"
+  "Created_at": "${imageAttributes.created_at}"
+  "Updated_at": "${imageAttributes.updated_at}"
+  
+
 }`}
                     </pre>
+                  ) : (
+                    <span>Loading image attributes...</span>
                   )}
                 </div>
               </div>
