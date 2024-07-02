@@ -13,6 +13,12 @@ export class ImageController {
     return this.productService.getProductDetails();
   }
 
+  @Get('image-attributes/:productSku/:variationSku')
+async getImageAttributes(@Param('productSku') productSku: string, @Param('variationSku') variationSku: string) {
+  return this.productService.getImageAttributes(productSku, variationSku);
+}
+
+
   @Post()
   create(@Body() createProductDto: CreateImageDto) {
     return this.productService.create(createProductDto);
