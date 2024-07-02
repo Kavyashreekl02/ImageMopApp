@@ -23,10 +23,10 @@ export class Product {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @OneToMany(() => ProductImage, productImage => productImage.product)
+  //@OneToMany(() => ProductImage, productImage => productImage.product)
   productImages: ProductImage[];
 
-  @OneToMany(() => ProductSkuVariation, productSkuVariation => productSkuVariation.product)
+  //@OneToMany(() => ProductSkuVariation, productSkuVariation => productSkuVariation.product)
   productSkuVariations: ProductSkuVariation[];
 }
 

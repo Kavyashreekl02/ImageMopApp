@@ -10,60 +10,59 @@ import { faCopy, faEdit } from '@fortawesome/free-solid-svg-icons';
 export default function Home() {
   const [products, setProducts] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [view, setView] = useState('all'); // 'all', 'approved', 'rejected', 'reviewLater'
+  const [view, setView] = useState('all');
   const [rejectedProducts, setRejectedProducts] = useState([]);
   const [approvedProducts, setApprovedProducts] = useState([]);
   const [reviewLaterProducts, setReviewLaterProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [reviewMode, setReviewMode] = useState(false); // New state for review mode
+  const [reviewMode, setReviewMode] = useState(false);
   const [currentPageApproved, setCurrentPageApproved] = useState(0);
   const [currentPageRejected, setCurrentPageRejected] = useState(0);
   const [currentPageReviewLater, setCurrentPageReviewLater] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(8); // Number of items per page
+  const [itemsPerPage, setItemsPerPage] = useState(8);
 
   useEffect(() => {
-    fetchProducts();
+    fetchProductsDetails();
   }, []);
 
-  
-  const fetchProducts = async () => {
+  const fetchProductsDetails = async () => {
     try {
-      const response = await axios.get('http://localhost:3001/product');
-      setProducts(response.data);
-      setSelectedProduct(response.data[0]); // Select the first product by default
-      filterProducts(response.data);
+      const response = await axios.get('http://localhost:3001/product/details');
+      if (response.data && response.data.length > 0) {
+        const productsWithImages = response.data.map((product, index) => ({
+          id: index,
+          sgid: product.sgid,
+          sku: product.product_sku,
+          name: product.name,
+          description: product.description,
+          product_dimensions: product.product_dimensions,
+          created_at: product.created_at,
+          updated_at: product.updated_at,
+          status: product.status,
+          product_images: [{
+            sgid: product.sgid,
+            product_id: product.product_sku,
+            sku_variation_id: product.variation_sku,
+            image_name: product.image_name,
+            alt_text: product.alt_text,
+            is_default: product.is_default,
+            sort_order: product.sort_order,
+            created_at: product.created_at,
+            updated_at: product.updated_at,
+            image_url: product.image_url,
+          }],
+        }));
+        setProducts(productsWithImages);
+        setSelectedProduct(productsWithImages[0]);
+        setCurrentIndex(0);
+        console.log('Fetched product details:', productsWithImages);
+      } else {
+        console.error('No products found in the response.');
+      }
     } catch (error) {
       console.error('Error fetching products:', error);
     }
   };
-
-  const fetchProductsDetails = async (index) => {
-    try {
-      const response = await axios.get('http://localhost:3001/product/details');
-      const baseUrl = 'https://d12kqwzvfrkt5o.cloudfront.net/products';
-      const imageUrls = response.data.map(item => ({
-        product_sgid: item.product_sgid,
-        variation_sgid: item.variation_sgid,
-        image_url: `${baseUrl}/${item.product_sgid}/${item.variation_sgid}/${item.image_name}`,
-        alt_text: item.alt_text,
-        is_default: item.is_default,
-        sort_order: item.sort_order,
-      }));
-
-      const updatedProducts = [...products];
-      updatedProducts[index] = { 
-        ...updatedProducts[index], 
-        product_images: imageUrls 
-      };
-      setProducts(updatedProducts);
-      setSelectedProduct(updatedProducts[index]); // Select the fetched product
-      filterProducts(updatedProducts);
-    } catch (error) {
-      console.error('Error fetching product details:', error);
-    }
-  };
-
-
 
   const filterProducts = (products) => {
     const approved = products.filter(product => product.status === 'Approved');
@@ -79,7 +78,6 @@ export default function Home() {
     try {
       await axios.put(`http://localhost:3001/product/${sgid}`, { status: newStatus });
 
-      // Update the products array locally instead of refetching
       const updatedProducts = products.map(product =>
         product.sgid === sgid ? { ...product, status: newStatus } : product
       );
@@ -87,7 +85,6 @@ export default function Home() {
       setProducts(updatedProducts);
       filterProducts(updatedProducts);
 
-      // Ensure the selected product remains the same
       const updatedSelectedProduct = updatedProducts.find(product => product.sgid === selectedProduct.sgid);
       setSelectedProduct(updatedSelectedProduct || null);
     } catch (error) {
@@ -124,7 +121,6 @@ export default function Home() {
       console.error('Error resetting product status:', error);
     }
   };
-
 
   const handleNextPageApproved = () => {
     setCurrentPageApproved(currentPageApproved + 1);
@@ -186,7 +182,17 @@ export default function Home() {
             {currentProducts.map((product) => (
               <tr key={product.id} style={{ borderBottom: '1px solid #ddd' }}>
                 <td style={{ padding: '10px', verticalAlign: 'top', textAlign: 'center' }}>
-                  <img src={product.product_image_uri} alt="Product Thumbnail" style={{ width: '35px', height: '50px', objectFit: 'contain' }} />
+                  {product.product_images && product.product_images.length > 0 ? (
+                    <img
+                      src={product.product_images[0].image_url} // Assuming first image URL is used
+                      alt="Product Image"
+                      style={{ width: '100%', maxHeight: '300px', objectFit: 'contain' }}
+                    />
+                  ) : (
+                    <div style={{ width: '100%', height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span>No image available</span>
+                    </div>
+                  )}
                 </td>
                 <td style={{ padding: '10px', verticalAlign: 'middle' }}>
                   {formatDate(product.updated_at)} {/* Display the formatted date */}
@@ -201,48 +207,47 @@ export default function Home() {
           </tbody>
           <tfoot>
             <tr>
-              <td colSpan="3" style={{ position: 'relative', textAlign: 'center'}}>
-                <button 
-                  onClick={handlePreviousPage} 
-                  style={{ 
-                    position: 'absolute', 
-                    left: 0, 
-                    padding: '10px 20px', 
-                    backgroundColor: 'white', 
-                    color: 'black',  
-                    border: 'none', 
-                    borderRadius: '5px', 
+              <td colSpan="3" style={{ position: 'relative', textAlign: 'center' }}>
+                <button
+                  onClick={handlePreviousPage}
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    padding: '10px 20px',
+                    backgroundColor: 'white',
+                    color: 'black',
+                    border: 'none',
+                    borderRadius: '5px',
                     cursor: currentPage === 0 ? 'not-allowed' : 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    
-                  }} 
+                  }}
                   disabled={currentPage === 0}
                 >
                   <FontAwesomeIcon icon={faArrowLeft} style={{ marginRight: '5px' }} />
-                  Previous 
+                  Previous
                 </button>
                 <span style={{ margin: '0 20px' }}>
-                  <span style={{ fontWeight: 'bold' }}> {currentPage + 1}</span>  {totalPages}
+                  <span style={{ fontWeight: 'bold' }}> {currentPage + 1}</span> {totalPages}
                 </span>
-                <button 
-                  onClick={handleNextPage} 
-                  style={{ 
-                    position: 'absolute', 
-                    right: 0, 
-                    padding: '10px 20px', 
-                    backgroundColor: 'white', 
-                    color: 'black',  
-                    border: 'none', 
-                    borderRadius: '5px', 
+                <button
+                  onClick={handleNextPage}
+                  style={{
+                    position: 'absolute',
+                    right: 0,
+                    padding: '10px 20px',
+                    backgroundColor: 'white',
+                    color: 'black',
+                    border: 'none',
+                    borderRadius: '5px',
                     cursor: endIndex >= productList.length ? 'not-allowed' : 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    marginLeft: '10px'
-                  }} 
+                    marginLeft: '10px',
+                  }}
                   disabled={endIndex >= productList.length}
                 >
-                  Next 
+                  Next
                   <FontAwesomeIcon icon={faArrowRight} style={{ marginLeft: '5px' }} />
                 </button>
               </td>
@@ -253,19 +258,17 @@ export default function Home() {
     );
   };
 
-// Function to format date as DD/MM/YYYY
-   const formatDate = (dateString) => {
-  const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-  const formattedDate = new Date(dateString).toLocaleDateString('en-GB', options);
-  return formattedDate;
-};
+  const formatDate = (dateString) => {
+    const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+    const formattedDate = new Date(dateString).toLocaleDateString('en-GB', options);
+    return formattedDate;
+  };
+
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'ArrowUp') {
-        // Implement logic to save updated metadata
         console.log('Saving updated metadata...');
       } else if (event.key === 'ArrowDown') {
-        // Implement logic to delete current image
         console.log('Deleting current image...');
       }
     };
@@ -385,7 +388,13 @@ export default function Home() {
           <div style={{ width: '60%', minWidth: '300px', overflow: 'hidden' }}>
             {selectedProduct && (
               <div style={{ border: '1px solid #ddd', padding: '20px', boxShadow: '0 0 10px rgba(0,0,0,0.1)', minHeight: '400px', position: 'relative' }}>
-                <img src={selectedProduct.product_image_uri} alt="Product" style={{ width: '100%', maxHeight: '300px', objectFit: 'contain' }} />
+                {selectedProduct.product_images && selectedProduct.product_images.length > 0 ? (
+                  <img src={selectedProduct.product_images[0].image_url} alt="Product" style={{ width: '100%', maxHeight: '300px', objectFit: 'contain' }} />
+                ) : (
+                  <div style={{ width: '100%', height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span>No image available</span>
+                  </div>
+                )}
                 <div
                   style={{
                     position: 'absolute',
@@ -417,7 +426,6 @@ export default function Home() {
 
                   <button
                     onClick={() => handleReject(selectedProduct.sgid)}
-
                     style={{
                       padding: '10px 20px',
                       backgroundColor: 'white',
@@ -449,8 +457,6 @@ export default function Home() {
                   >
                     Approve
                   </button>
-                  
-                  
                 </div>
                 <div
                   style={{
@@ -521,22 +527,22 @@ export default function Home() {
 </h3>
 
                 <div style={{ backgroundColor: '#f4f4f4', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
-  {selectedProduct && (
-    <pre style={{ whiteSpace: 'pre-wrap', fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
-      {`{
-  "ID": "${selectedProduct.sgid}",
-  "Product ID": "${selectedProduct.sku}",
-  "Name": "${selectedProduct.image_name || ''}",
-  "Description": "${selectedProduct.description || ''}",
-  "Dimensions": "${selectedProduct.product_dimensions || ''}",
-  "Created At": "${selectedProduct.created_at || ''}",
-  "Updated At": "${selectedProduct.updated_at || ''}",
-  "Status": "${selectedProduct.status || ''}",
-  "Approved Date": "${selectedProduct.updated_at ? formatDate(selectedProduct.updated_at) : ''}"
+                  {selectedProduct.product_images && selectedProduct.product_images.length > 0 && (
+                    <pre style={{ whiteSpace: 'pre-wrap', fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
+                      {`{
+  "ID": "${selectedProduct.product_images[0].sgid}",
+  "Product ID": "${selectedProduct.product_images[0].product_id}",
+  "SKU Variation ID": "${selectedProduct.product_images[0].sku_variation_id}",
+  "Image Name": "${selectedProduct.product_images[0].image_name}",
+  "Alt Text": "${selectedProduct.product_images[0].alt_text || ''}",
+  "Is Default": "${selectedProduct.product_images[0].is_default || ''}",
+  "Sort Order": "${selectedProduct.product_images[0].sort_order || ''}",
+  "Created At": "${selectedProduct.product_images[0].created_at || ''}",
+  "Updated At": "${selectedProduct.product_images[0].updated_at || ''}"
 }`}
-    </pre>
-  )}
-</div>
+                    </pre>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -545,5 +551,3 @@ export default function Home() {
     </div>
   );
 }
-
-         
