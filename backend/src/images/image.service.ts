@@ -101,6 +101,31 @@ async getProductDetails() {
     throw new Error('Internal server error');
   }
 }
+
+async getImageAttributes(productSku: string, variationSku: string) {
+  try {
+    console.log(`Fetching image attributes for Product SKU: ${productSku}, Variation SKU: ${variationSku}`);
+    const imageResult = await this.productRepository.query(`
+      SELECT pi.sgid, pi.product_id, pi.sku_variation_id, pi.image_name, pi.alt_text, pi.is_default, pi.sort_order, pi.created_at, pi.updated_at, p.description
+      FROM product_images pi
+      JOIN product_sku_variation psv ON pi.sku_variation_id = psv.sgid
+      JOIN product p ON psv.product_id = p.sgid
+      WHERE p.sku = $1 AND psv.sku = $2;
+    `, [productSku, variationSku]);
+
+    if (imageResult.length === 0) {
+      throw new NotFoundException(`No image found for product SKU: ${productSku} and variation SKU: ${variationSku}`);
+    }
+
+    console.log('Fetched image attributes:', imageResult[0]);
+    return imageResult[0];
+  } catch (error) {
+    console.error('Error fetching image attributes:', error);
+    throw new Error('Internal server error');
+  }
+}
+
+
   // Method to update a product by ID
   async update(id: number, updateProductDto: UpdateImageDto): Promise<Product> {
     const product = await this.findOne(id);
