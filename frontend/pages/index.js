@@ -385,6 +385,39 @@ export default function Home() {
                     <span>No image available</span>
                   </div>
                 )}
+                <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: '10', display: 'flex', alignItems: 'center' }}>
+            <button
+              onClick={() => handleDelete(selectedProduct.sgid)} // Replace with your delete function
+              style={{
+                backgroundColor: 'white',
+                border: '1px solid #ddd',
+                padding: '20px',
+                boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+               
+                position: 'relative',
+                
+                borderRadius: '50%',
+                width: '40px',
+                height: '40px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                overflow: 'hidden',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '24px',
+                  fontWeight: 'bold',
+                  color: 'black',
+                  lineHeight: 0,
+                }}
+              >
+                &#128465; {/* Unicode for trash can */}
+              </span>
+            </button>
+          </div>
                 <div
                   style={{
                     position: 'absolute',
