@@ -25,32 +25,25 @@ export default function Home() {
     fetchProductsDetails();
   }, []);
 
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get('http://localhost:3001/product');
+      setProducts(response.data);
+      setSelectedProduct(response.data[0]);
+      filterProducts(response.data);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
+  };
+
   const fetchProductsDetails = async () => {
     try {
       const response = await axios.get('http://localhost:3001/product/details');
       if (response.data && response.data.length > 0) {
         const productsWithImages = response.data.map((product, index) => ({
+          ...product,
           id: index,
-          sgid: product.sgid,
-          sku: product.product_sku,
-          name: product.name,
-          description: product.description,
-          product_dimensions: product.product_dimensions,
-          created_at: product.created_at,
-          updated_at: product.updated_at,
-          status: product.status,
-          product_images: [{
-            sgid: product.sgid,
-            product_id: product.product_sku,
-            sku_variation_id: product.variation_sku,
-            image_name: product.image_name,
-            alt_text: product.alt_text,
-            is_default: product.is_default,
-            sort_order: product.sort_order,
-            created_at: product.created_at,
-            updated_at: product.updated_at,
-            image_url: product.image_url,
-          }],
+          product_images: product.image_url ? [{ image_url: product.image_url }] : [],
         }));
         setProducts(productsWithImages);
         setSelectedProduct(productsWithImages[0]);
@@ -527,18 +520,18 @@ export default function Home() {
 </h3>
 
                 <div style={{ backgroundColor: '#f4f4f4', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
-                  {selectedProduct.product_images && selectedProduct.product_images.length > 0 && (
+                  {selectedProduct && (
                     <pre style={{ whiteSpace: 'pre-wrap', fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
                       {`{
-  "ID": "${selectedProduct.product_images[0].sgid}",
-  "Product ID": "${selectedProduct.product_images[0].product_id}",
-  "SKU Variation ID": "${selectedProduct.product_images[0].sku_variation_id}",
-  "Image Name": "${selectedProduct.product_images[0].image_name}",
-  "Alt Text": "${selectedProduct.product_images[0].alt_text || ''}",
-  "Is Default": "${selectedProduct.product_images[0].is_default || ''}",
-  "Sort Order": "${selectedProduct.product_images[0].sort_order || ''}",
-  "Created At": "${selectedProduct.product_images[0].created_at || ''}",
-  "Updated At": "${selectedProduct.product_images[0].updated_at || ''}"
+  "ID": "${selectedProduct.sgid}",
+  "Product ID": "${selectedProduct.sku}",
+  "Name": "${selectedProduct.name || ''}",
+  "Description": "${selectedProduct.description || ''}",
+  "Dimensions": "${selectedProduct.product_dimensions || ''}",
+  "Created At": "${selectedProduct.created_at || ''}",
+  "Updated At": "${selectedProduct.updated_at || ''}",
+  "Status": "${selectedProduct.status || ''}",
+  "Approved Date": "${selectedProduct.updated_at ? formatDate(selectedProduct.updated_at) : ''}",
 }`}
                     </pre>
                   )}
