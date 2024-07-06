@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faArrowRight, faCopy, faEdit } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faArrowRight, faCopy, faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import '@fortawesome/fontawesome-free/css/all.css';
 
 export default function Home() {
@@ -24,7 +24,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (selectedProduct && selectedProduct.product_images.length > 0) {
+    if (selectedProduct && selectedProduct.product_images && selectedProduct.product_images.length > 0) {
       const imageUrlParts = selectedProduct.product_images[0].image_url.split('/');
       const productSku = imageUrlParts[4];
       const variationSku = imageUrlParts[5];
@@ -48,16 +48,53 @@ export default function Home() {
           product_images: product.image_url ? [{ image_url: product.image_url }] : [],
         }));
         
+        console.log("Fetched Products: ", productsWithImages);
         setProducts(productsWithImages);
         setSelectedProduct(productsWithImages[0]);
         setCurrentIndex(0);
-        setView('all');
+        filterProducts(productsWithImages);
       } else {
         console.error('No products found in the response.');
       }
     } catch (error) {
       console.error('Error fetching products:', error);
     }
+  };
+
+  const fetchProductsByStatus = async (status) => {
+    try {
+      const response = await axios.get(`http://localhost:3001/product/status/${status}`);
+      if (response.data && response.data.length > 0) {
+        const productsWithImages = response.data.map((productImage, index) => ({
+          ...productImage.product,
+          id: index,
+          product_images: [{ image_url: `https://d12kqwzvfrkt5o.cloudfront.net/products/${productImage.product.sku}/${productImage.skuVariation.sku}/${productImage.image_name}` }],
+        }));
+        
+        return productsWithImages;
+      } else {
+        console.error(`No ${status} products found in the response.`);
+        return [];
+      }
+    } catch (error) {
+      console.error(`Error fetching ${status} products:`, error);
+      return [];
+    }
+  };
+
+  const fetchApprovedProducts = async () => {
+    const products = await fetchProductsByStatus('Approved');
+    setApprovedProducts(products);
+  };
+
+  const fetchRejectedProducts = async () => {
+    const products = await fetchProductsByStatus('Rejected');
+    setRejectedProducts(products);
+  };
+
+  const fetchReviewLaterProducts = async () => {
+    const products = await fetchProductsByStatus('ReviewLater');
+    setReviewLaterProducts(products);
   };
 
   const fetchImageAttributes = async (productSku, variationSku) => {
@@ -80,46 +117,96 @@ export default function Home() {
     setReviewLaterProducts(reviewLater);
   };
 
-  const handleStatusUpdate = async (sgid, newStatus) => {
+  const handleStatusUpdate = async (productSku, variationSku, sgid, newStatus) => {
     try {
-      await axios.put(`http://localhost:3001/product/${sgid}`, { status: newStatus });
+      if (!productSku || !variationSku ) {
+        throw new Error('Invalid product SKU, variation SKU, or sgid');
+      }
+
+      console.log('Updating status:', { productSku, variationSku, newStatus });
+
+      await axios.put(`http://localhost:3001/product/image-attributes/${productSku}/${variationSku}`, { status: newStatus });
 
       const updatedProducts = products.map(product =>
-        product.sgid === sgid ? { ...product, status: newStatus } : product
+        product.product_id === productSku && product.variation_sku === variationSku ? { ...product, status: newStatus } : product
       );
 
+
       setProducts(updatedProducts);
+
+      // Re-filter the products to update the view
       filterProducts(updatedProducts);
 
       const updatedSelectedProduct = updatedProducts.find(product => product.sgid === selectedProduct.sgid);
       setSelectedProduct(updatedSelectedProduct || null);
+
+
     } catch (error) {
       console.error('Error updating product status:', error);
     }
   };
 
-  const handleReject = async (sgid) => {
-    const confirmReject = window.confirm('Are you sure you want to reject this product?');
-    if (confirmReject) {
-      try {
-        await handleStatusUpdate(sgid, 'Rejected');
-      } catch (error) {
-        console.error('Error rejecting product:', error);
+  const handleApprove = async () => {
+    if (selectedProduct && selectedProduct.product_images && selectedProduct.product_images.length > 0) {
+      const imageUrlParts = selectedProduct.product_images[0].image_url.split('/');
+      const productSku = imageUrlParts[4];
+      const variationSku = imageUrlParts[5];
+
+      if (!productSku || !variationSku) {
+        console.error('Invalid SKU values');
+        return;
+      }
+
+      await handleStatusUpdate(productSku, variationSku, selectedProduct.sgid, 'Approved');
+      fetchApprovedProducts();
+    }
+  };
+
+  const handleReject = async () => {
+    if (selectedProduct && selectedProduct.product_images && selectedProduct.product_images.length > 0) {
+      const imageUrlParts = selectedProduct.product_images[0].image_url.split('/');
+      const productSku = imageUrlParts[4];
+      const variationSku = imageUrlParts[5];
+
+      if (!productSku || !variationSku) {
+        console.error('Invalid SKU values');
+        return;
+      }
+
+      const confirmReject = window.confirm('Are you sure you want to reject this product?');
+      if (confirmReject) {
+        try {
+          await handleStatusUpdate(productSku, variationSku, selectedProduct.sgid, 'Rejected');
+          fetchRejectedProducts();
+        } catch (error) {
+          console.error('Error rejecting product:', error);
+        }
       }
     }
   };
 
-  const handleApprove = async (sgid) => {
-    await handleStatusUpdate(sgid, 'Approved');
-  };
+  const handleReviewLater = async () => {
+    if (selectedProduct && selectedProduct.product_images && selectedProduct.product_images.length > 0) {
+      const imageUrlParts = selectedProduct.product_images[0].image_url.split('/');
+      const productSku = imageUrlParts[4];
+      const variationSku = imageUrlParts[5];
 
-  const handleReviewLater = async (sgid) => {
-    await handleStatusUpdate(sgid, 'ReviewLater');
+      if (!productSku || !variationSku) {
+        console.error('Invalid SKU values');
+        return;
+      }
+
+      await handleStatusUpdate(productSku, variationSku, selectedProduct.sgid, 'ReviewLater');
+      fetchReviewLaterProducts();
+    }
   };
 
   const handleReviewAgain = async (product) => {
+    const imageUrlParts = product.product_images[0].image_url.split('/');
+    const productSku = imageUrlParts[4];
+    const variationSku = imageUrlParts[5];
     try {
-      await handleStatusUpdate(product.sgid, 'Pending');
+      await handleStatusUpdate(productSku, variationSku, product.sgid, 'Pending');
       setSelectedProduct(product);
       setReviewMode(true);
     } catch (error) {
@@ -233,7 +320,7 @@ export default function Home() {
                   Previous
                 </button>
                 <span style={{ margin: '0 20px' }}>
-                  <span style={{ fontWeight: 'bold' }}> {currentPage + 1}</span> {totalPages}
+                  <span style={{ fontWeight: 'bold' }}>{currentPage + 1}</span> of {totalPages}
                 </span>
                 <button
                   onClick={handleNextPage}
@@ -285,6 +372,16 @@ export default function Home() {
     };
   }, []);
 
+  useEffect(() => {
+    if (view === 'approved') {
+      fetchApprovedProducts();
+    } else if (view === 'rejected') {
+      fetchRejectedProducts();
+    } else if (view === 'reviewLater') {
+      fetchReviewLaterProducts();
+    }
+  }, [view]);
+
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif', backgroundColor: 'white', minHeight: '100vh' }}>
       <h1 style={{ color: '#f5c500', fontWeight: 'bold', marginTop: 0 }}>INHABITR</h1>
@@ -314,7 +411,7 @@ export default function Home() {
             marginRight: '10px'
           }}
         >
-          Product details
+          Analyze 
         </button>
         <button
           type="button"
@@ -363,17 +460,11 @@ export default function Home() {
         </button>
       </div>
 
-      {!reviewMode && view === 'approved' && (
-        renderProductList(approvedProducts, currentPageApproved, handleNextPageApproved, handlePreviousPageApproved)
-      )}
-      {!reviewMode && view === 'rejected' && (
-        renderProductList(rejectedProducts, currentPageRejected, handleNextPageRejected, handlePreviousPageRejected)
-      )}
-      {!reviewMode && view === 'reviewLater' && (
-        renderProductList(reviewLaterProducts, currentPageReviewLater, handleNextPageReviewLater, handlePreviousPageReviewLater)
-      )}
+      {view === 'approved' && renderProductList(approvedProducts, currentPageApproved, handleNextPageApproved, handlePreviousPageApproved)}
+      {view === 'rejected' && renderProductList(rejectedProducts, currentPageRejected, handleNextPageRejected, handlePreviousPageRejected)}
+      {view === 'reviewLater' && renderProductList(reviewLaterProducts, currentPageReviewLater, handleNextPageReviewLater, handlePreviousPageReviewLater)}
 
-      {products.length > 0 && (view === 'all' || reviewMode) && (
+      {products.length > 0 && view === 'all' && (
         <div style={{ display: 'flex', gap: '20px', marginTop: '20px', position: 'relative' }}>
           <div style={{ width: '60%', minWidth: '300px', overflow: 'hidden' }}>
             {selectedProduct && (
@@ -386,38 +477,27 @@ export default function Home() {
                   </div>
                 )}
                 <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: '10', display: 'flex', alignItems: 'center' }}>
-            <button
-              onClick={() => handleDelete(selectedProduct.sgid)} // Replace with your delete function
-              style={{
-                backgroundColor: 'white',
-                border: '1px solid #ddd',
-                padding: '20px',
-                boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-               
-                position: 'relative',
-                
-                borderRadius: '50%',
-                width: '40px',
-                height: '40px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                overflow: 'hidden',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '24px',
-                  fontWeight: 'bold',
-                  color: 'black',
-                  lineHeight: 0,
-                }}
-              >
-                &#128465; {/* Unicode for trash can */}
-              </span>
-            </button>
-          </div>
+                  <button
+                    onClick={() => handleDelete(selectedProduct.sgid)}
+                    style={{
+                      backgroundColor: 'white',
+                      border: '1px solid #ddd',
+                      padding: '20px',
+                      boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+                      position: 'relative',
+                      borderRadius: '50%',
+                      width: '40px',
+                      height: '40px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faTrash} style={{ color: 'black', fontSize: '20px' }} />
+                  </button>
+                </div>
                 <div
                   style={{
                     position: 'absolute',
@@ -431,7 +511,7 @@ export default function Home() {
                   }}
                 >
                   <button
-                    onClick={() => handleReviewLater(selectedProduct.sgid)}
+                    onClick={handleReviewLater}
                     style={{
                       padding: '10px 20px',
                       backgroundColor: 'white',
@@ -448,7 +528,7 @@ export default function Home() {
                   </button>
 
                   <button
-                    onClick={() => handleReject(selectedProduct.sgid)}
+                    onClick={handleReject}
                     style={{
                       padding: '10px 20px',
                       backgroundColor: 'white',
@@ -465,7 +545,7 @@ export default function Home() {
                   </button>
 
                   <button
-                    onClick={() => handleApprove(selectedProduct.sgid)}
+                    onClick={handleApprove}
                     style={{
                       padding: '10px 20px',
                       backgroundColor: '#1E90FF',
@@ -555,10 +635,11 @@ export default function Home() {
                       {`{
   "Product SKU": "${imageAttributes.product_id}",
   "Variation SKU": "${imageAttributes.sku_variation_id}",
-  "Image Name": "${imageAttributes.image_name}"
-  "Alt_text": "${imageAttributes.alt_text}"
-  "Created_at": "${imageAttributes.created_at}"
-  "Updated_at": "${imageAttributes.updated_at}"
+  "Image Name": "${imageAttributes.image_name}",
+  "Alt_text": "${imageAttributes.alt_text}",
+  "Created_at": "${imageAttributes.created_at}",
+  "Updated_at": "${imageAttributes.updated_at}",
+  "Status": "${imageAttributes.status}"
 }`}
                     </pre>
                   ) : (

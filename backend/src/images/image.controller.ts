@@ -6,32 +6,49 @@ import { UpdateImageDto } from './dto/update-image.dto';
 
 @Controller('product')
 export class ImageController {
-  constructor(private readonly productService: ImageService) {}
+  
+  constructor(private readonly imageService: ImageService) {}
 
   @Get('details')
   async getProductDetails() {
-    return this.productService.getProductDetails();
+    return this.imageService.getProductDetails();
+  }
+
+  @Get('status/:status')
+  findProductsByStatus(@Param('status') status: string) {
+    return this.imageService.findProductsByStatus(status);
   }
 
   @Get('image-attributes/:productSku/:variationSku')
-async getImageAttributes(@Param('productSku') productSku: string, @Param('variationSku') variationSku: string) {
-  return this.productService.getImageAttributes(productSku, variationSku);
-}
+  async getImageAttributes(
+    @Param('productSku') productSku: string, 
+    @Param('variationSku') variationSku: string
+  ) {
+    return this.imageService.getImageAttributes(productSku, variationSku);
+  }
 
+  @Put('image-attributes/:productSku/:variationSku')
+  async updateImageAttributes(
+    @Param('productSku') productSku: string,
+    @Param('variationSku') variationSku: string,
+    @Body() updateImageAttributes: UpdateImageDto,
+  ) {
+    return this.imageService.updateImageAttributes(productSku, variationSku, updateImageAttributes);
+  }
 
   @Post()
   create(@Body() createProductDto: CreateImageDto) {
-    return this.productService.create(createProductDto);
+    return this.imageService.create(createProductDto);
   }
 
   @Get()
   findAll() {
-    return this.productService.findAll();
+    return this.imageService.findAll();
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const product = await this.productService.findOne(+id);
+    const product = await this.imageService.findOne(+id);
     if (!product) {
       throw new NotFoundException('Product not found');
     }
@@ -40,11 +57,11 @@ async getImageAttributes(@Param('productSku') productSku: string, @Param('variat
 
   @Put(':id')
   update(@Param('id') id: string, @Body() updateProductDto: UpdateImageDto) {
-    return this.productService.update(+id, updateProductDto);
+    return this.imageService.update(+id, updateProductDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.productService.remove(+id);
+    return this.imageService.remove(+id);
   }
 }

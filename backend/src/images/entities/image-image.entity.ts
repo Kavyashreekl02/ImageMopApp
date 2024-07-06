@@ -32,6 +32,9 @@ export class ProductImage {
   @UpdateDateColumn()
   updated_at: Date;
 
+  @Column({ nullable: true })
+  status: string;
+
   @ManyToOne(() => ProductSkuVariation, skuVariation => skuVariation.productImages)
   @JoinColumn({ name: 'sku_variation_id' })
   skuVariation: ProductSkuVariation;
