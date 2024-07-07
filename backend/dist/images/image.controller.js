@@ -18,30 +18,39 @@ const image_service_1 = require("./image.service");
 const create_image_dto_1 = require("./dto/create-image.dto");
 const update_image_dto_1 = require("./dto/update-image.dto");
 let ImageController = class ImageController {
-    constructor(productService) {
-        this.productService = productService;
+    constructor(imageService) {
+        this.imageService = imageService;
     }
     async getProductDetails() {
-        return this.productService.getProductDetails();
+        return this.imageService.getProductDetails();
+    }
+    findProductsByStatus(status) {
+        return this.imageService.findProductsByStatus(status);
+    }
+    async getImageAttributes(productSku, variationSku) {
+        return this.imageService.getImageAttributes(productSku, variationSku);
+    }
+    async updateImageAttributes(productSku, variationSku, updateImageAttributes) {
+        return this.imageService.updateImageAttributes(productSku, variationSku, updateImageAttributes);
     }
     create(createProductDto) {
-        return this.productService.create(createProductDto);
+        return this.imageService.create(createProductDto);
     }
     findAll() {
-        return this.productService.findAll();
+        return this.imageService.findAll();
     }
     async findOne(id) {
-        const product = await this.productService.findOne(+id);
+        const product = await this.imageService.findOne(+id);
         if (!product) {
             throw new common_1.NotFoundException('Product not found');
         }
         return product;
     }
     update(id, updateProductDto) {
-        return this.productService.update(+id, updateProductDto);
+        return this.imageService.update(+id, updateProductDto);
     }
     remove(id) {
-        return this.productService.remove(+id);
+        return this.imageService.remove(+id);
     }
 };
 exports.ImageController = ImageController;
@@ -51,6 +60,30 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], ImageController.prototype, "getProductDetails", null);
+__decorate([
+    (0, common_1.Get)('status/:status'),
+    __param(0, (0, common_1.Param)('status')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], ImageController.prototype, "findProductsByStatus", null);
+__decorate([
+    (0, common_1.Get)('image-attributes/:productSku/:variationSku'),
+    __param(0, (0, common_1.Param)('productSku')),
+    __param(1, (0, common_1.Param)('variationSku')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], ImageController.prototype, "getImageAttributes", null);
+__decorate([
+    (0, common_1.Put)('image-attributes/:productSku/:variationSku'),
+    __param(0, (0, common_1.Param)('productSku')),
+    __param(1, (0, common_1.Param)('variationSku')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, update_image_dto_1.UpdateImageDto]),
+    __metadata("design:returntype", Promise)
+], ImageController.prototype, "updateImageAttributes", null);
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
@@ -87,7 +120,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ImageController.prototype, "remove", null);
 exports.ImageController = ImageController = __decorate([
-    (0, common_1.Controller)('products'),
+    (0, common_1.Controller)('product'),
     __metadata("design:paramtypes", [image_service_1.ImageService])
 ], ImageController);
 //# sourceMappingURL=image.controller.js.map

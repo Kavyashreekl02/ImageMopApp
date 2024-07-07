@@ -22,16 +22,16 @@ __decorate([
 ], ProductSkuVariation.prototype, "sgid", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
+    __metadata("design:type", Number)
 ], ProductSkuVariation.prototype, "product_id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ length: 10, nullable: true }),
     __metadata("design:type", String)
-], ProductSkuVariation.prototype, "sku_variation", void 0);
+], ProductSkuVariation.prototype, "sku", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], ProductSkuVariation.prototype, "image_name", void 0);
+    (0, typeorm_1.Column)({ type: 'double precision', nullable: true }),
+    __metadata("design:type", Number)
+], ProductSkuVariation.prototype, "asset_value", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
@@ -40,10 +40,6 @@ __decorate([
     (0, typeorm_1.UpdateDateColumn)(),
     __metadata("design:type", Date)
 ], ProductSkuVariation.prototype, "updated_at", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], ProductSkuVariation.prototype, "alt_text", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => image_entity_1.Product, product => product.productSkuVariations),
     (0, typeorm_1.JoinColumn)({ name: 'product_id' }),

@@ -22,12 +22,28 @@ __decorate([
 ], ProductImage.prototype, "sgid", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], ProductImage.prototype, "product_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], ProductImage.prototype, "sku_variation_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], ProductImage.prototype, "sku_variation", void 0);
+], ProductImage.prototype, "image_name", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
-], ProductImage.prototype, "image_name", void 0);
+], ProductImage.prototype, "alt_text", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 10, nullable: true }),
+    __metadata("design:type", String)
+], ProductImage.prototype, "is_default", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 10, nullable: true }),
+    __metadata("design:type", String)
+], ProductImage.prototype, "sort_order", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
@@ -39,7 +55,7 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
-], ProductImage.prototype, "alt_text", void 0);
+], ProductImage.prototype, "status", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => image_sku_entity_1.ProductSkuVariation, skuVariation => skuVariation.productImages),
     (0, typeorm_1.JoinColumn)({ name: 'sku_variation_id' }),
