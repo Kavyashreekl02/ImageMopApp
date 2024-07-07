@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faArrowRight, faCopy, faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
@@ -19,6 +19,8 @@ export default function Home() {
   const [currentPageReviewLater, setCurrentPageReviewLater] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(8);
 
+  const previousProductRef = useRef(null);
+
   useEffect(() => {
     fetchProductsDetails();
   }, []);
@@ -38,6 +40,19 @@ export default function Home() {
     }
   }, [selectedProduct]);
 
+  useEffect(() => {
+    if (view === 'approved') {
+      fetchApprovedProducts();
+    } else if (view === 'rejected') {
+      fetchRejectedProducts();
+    } else if (view === 'reviewLater') {
+      fetchReviewLaterProducts();
+    } else if (view === 'all' && previousProductRef.current) {
+      setSelectedProduct(previousProductRef.current);
+      previousProductRef.current = null;
+    }
+  }, [view]);
+
   const fetchProductsDetails = async () => {
     try {
       const response = await axios.get('http://localhost:3001/product/details');
@@ -47,7 +62,7 @@ export default function Home() {
           id: index,
           product_images: product.image_url ? [{ image_url: product.image_url }] : [],
         }));
-        
+
         console.log("Fetched Products: ", productsWithImages);
         setProducts(productsWithImages);
         setSelectedProduct(productsWithImages[0]);
@@ -70,7 +85,7 @@ export default function Home() {
           id: index,
           product_images: [{ image_url: `https://d12kqwzvfrkt5o.cloudfront.net/products/${productImage.product.sku}/${productImage.skuVariation.sku}/${productImage.image_name}` }],
         }));
-        
+
         return productsWithImages;
       } else {
         console.error(`No ${status} products found in the response.`);
@@ -119,8 +134,8 @@ export default function Home() {
 
   const handleStatusUpdate = async (productSku, variationSku, sgid, newStatus) => {
     try {
-      if (!productSku || !variationSku ) {
-        throw new Error('Invalid product SKU, variation SKU, or sgid');
+      if (!productSku || !variationSku) {
+        throw new Error('Invalid product SKU or variation SKU');
       }
 
       console.log('Updating status:', { productSku, variationSku, newStatus });
@@ -131,7 +146,6 @@ export default function Home() {
         product.product_id === productSku && product.variation_sku === variationSku ? { ...product, status: newStatus } : product
       );
 
-
       setProducts(updatedProducts);
 
       // Re-filter the products to update the view
@@ -140,6 +154,10 @@ export default function Home() {
       const updatedSelectedProduct = updatedProducts.find(product => product.sgid === selectedProduct.sgid);
       setSelectedProduct(updatedSelectedProduct || null);
 
+      // Update image attributes to reflect the status change
+      if (imageAttributes && imageAttributes.product_id === productSku && imageAttributes.sku_variation_id === variationSku) {
+        setImageAttributes({ ...imageAttributes, status: newStatus });
+      }
 
     } catch (error) {
       console.error('Error updating product status:', error);
@@ -202,12 +220,14 @@ export default function Home() {
   };
 
   const handleReviewAgain = async (product) => {
+    previousProductRef.current = product; // Save the current product to ref
     const imageUrlParts = product.product_images[0].image_url.split('/');
     const productSku = imageUrlParts[4];
     const variationSku = imageUrlParts[5];
     try {
       await handleStatusUpdate(productSku, variationSku, product.sgid, 'Pending');
       setSelectedProduct(product);
+      setView('all'); // Switch back to the "Analyze" tab
       setReviewMode(true);
     } catch (error) {
       console.error('Error resetting product status:', error);
@@ -266,7 +286,7 @@ export default function Home() {
           <thead>
             <tr style={{ backgroundColor: '#BEE4F4', borderBottom: '1px solid #ddd' }}>
               <th style={{ padding: '5px', textAlign: 'center' }}>Images</th>
-              <th style={{ padding: '10px', textAlign: 'left' }}>Approved On</th>
+              <th style={{ padding: '10px', textAlign: 'left' }}>{view === 'approved' ? 'Approved On' : view === 'rejected' ? 'Rejected On' : 'Review On'}</th>
               <th style={{ padding: '10px', textAlign: 'center' }}>Actions</th>
             </tr>
           </thead>
@@ -278,10 +298,10 @@ export default function Home() {
                     <img
                       src={product.product_images[0].image_url} // Assuming first image URL is used
                       alt="Product Image"
-                      style={{ width: '100%', maxHeight: '300px', objectFit: 'contain' }}
+                      style={{ width: '100%', maxHeight: '100px', objectFit: 'contain' }} // Adjusted height
                     />
                   ) : (
-                    <div style={{ width: '100%', height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: '100%', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <span>No image available</span>
                     </div>
                   )}
@@ -372,16 +392,6 @@ export default function Home() {
     };
   }, []);
 
-  useEffect(() => {
-    if (view === 'approved') {
-      fetchApprovedProducts();
-    } else if (view === 'rejected') {
-      fetchRejectedProducts();
-    } else if (view === 'reviewLater') {
-      fetchReviewLaterProducts();
-    }
-  }, [view]);
-
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif', backgroundColor: 'white', minHeight: '100vh' }}>
       <h1 style={{ color: '#f5c500', fontWeight: 'bold', marginTop: 0 }}>INHABITR</h1>
@@ -400,7 +410,7 @@ export default function Home() {
       <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', marginBottom: '10px' }}>
         <button
           type="button"
-          onClick={() => { setView('all'); fetchProductsDetails(); }}
+          onClick={() => { setView('all'); }}
           style={{
             padding: '10px 20px',
             backgroundColor: 'white',
