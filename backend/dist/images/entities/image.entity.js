@@ -11,8 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Product = void 0;
 const typeorm_1 = require("typeorm");
-const image_image_entity_1 = require("./image-image.entity");
-const image_sku_entity_1 = require("./image-sku.entity");
 let Product = class Product {
 };
 exports.Product = Product;
@@ -21,21 +19,17 @@ __decorate([
     __metadata("design:type", Number)
 ], Product.prototype, "sgid", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ nullable: true, length: 300 }),
     __metadata("design:type", String)
 ], Product.prototype, "name", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ nullable: true, length: 10 }),
     __metadata("design:type", String)
-], Product.prototype, "product_image_uri", void 0);
+], Product.prototype, "sku", void 0);
 __decorate([
     (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
-], Product.prototype, "product_description", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], Product.prototype, "product_dimensions", void 0);
+], Product.prototype, "description", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
@@ -44,27 +38,7 @@ __decorate([
     (0, typeorm_1.UpdateDateColumn)(),
     __metadata("design:type", Date)
 ], Product.prototype, "updated_at", void 0);
-__decorate([
-    (0, typeorm_1.Column)('float'),
-    __metadata("design:type", Number)
-], Product.prototype, "price", void 0);
-__decorate([
-    (0, typeorm_1.Column)('int'),
-    __metadata("design:type", Number)
-], Product.prototype, "quantity", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", String)
-], Product.prototype, "status", void 0);
-__decorate([
-    (0, typeorm_1.OneToMany)(() => image_image_entity_1.ProductImage, productImage => productImage.product),
-    __metadata("design:type", Array)
-], Product.prototype, "productImages", void 0);
-__decorate([
-    (0, typeorm_1.OneToMany)(() => image_sku_entity_1.ProductSkuVariation, productSkuVariation => productSkuVariation.product),
-    __metadata("design:type", Array)
-], Product.prototype, "productSkuVariations", void 0);
 exports.Product = Product = __decorate([
-    (0, typeorm_1.Entity)('products')
+    (0, typeorm_1.Entity)('product')
 ], Product);
 //# sourceMappingURL=image.entity.js.map

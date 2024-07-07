@@ -27,7 +27,7 @@ exports.AppModule = AppModule = __decorate([
                 password: 'root',
                 database: 'nestapp',
                 entities: [image_entity_1.Product, image_image_entity_1.ProductImage, image_sku_entity_1.ProductSkuVariation],
-                synchronize: true,
+                synchronize: false,
                 logging: true,
             }),
             image_module_1.ProductModule,
