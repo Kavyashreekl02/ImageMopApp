@@ -82,19 +82,26 @@ export default function Home() {
     try {
       const response = await axios.get(`http://localhost:3001/product/status/${status}`);
       if (response.data && response.data.length > 0) {
-        const productsWithImages = response.data.map((productImage, index) => ({
-          ...productImage.product,
-          id: index,
-          product_images: [{ image_url: `https://d12kqwzvfrkt5o.cloudfront.net/products/${productImage.product.sku}/${productImage.skuVariation.sku}/${productImage.image_name}` }],
-        }));
+        const productsWithImages = response.data.map((productImage, index) => {
+          if (productImage && productImage.product && productImage.skuVariation && productImage.image) {
+            return {
+              ...productImage.product,
+              id: index,
+              product_images: [{ image_url: `https://d12kqwzvfrkt5o.cloudfront.net/products/${productImage.product.sku}/${productImage.skuVariation.sku}/${productImage.image}` }],
+            };
+          } else {
+            console.warn(`Invalid product image data at index ${index}`, productImage);
+            return null;
+          }
+        }).filter(product => product !== null);
 
         return productsWithImages;
       } else {
-        console.error('No ${status} products found in the response.');
+        console.error(`No ${status} products found in the response.`);
         return [];
       }
     } catch (error) {
-      console.error('Error fetching ${status} products:, error');
+      console.error(`Error fetching ${status} products:`, error);
       return [];
     }
   };
