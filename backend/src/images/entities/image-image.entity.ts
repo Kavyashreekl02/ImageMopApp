@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Product } from './image.entity';
+
 import { ProductSkuVariation } from './image-sku.entity';
 
 @Entity('product_images')
@@ -9,13 +9,10 @@ export class ProductImage {
   sgid: number;
 
   @Column({ nullable: true })
-  product_id: number;
-
-  @Column({ nullable: true })
   sku_variation_id: number;
 
   @Column()
-  image_name: string;
+  image: string;
 
   @Column({ nullable: true })
   alt_text: string;
@@ -39,7 +36,5 @@ export class ProductImage {
   @JoinColumn({ name: 'sku_variation_id' })
   skuVariation: ProductSkuVariation;
 
-  @ManyToOne(() => Product, product => product.productImages)
-  @JoinColumn({ name: 'product_id' })
-  product: Product;
+ 
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faArrowRight, faCopy, faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
@@ -18,6 +18,10 @@ export default function Home() {
   const [currentPageRejected, setCurrentPageRejected] = useState(0);
   const [currentPageReviewLater, setCurrentPageReviewLater] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(8);
+  const [editing, setEditing] = useState(false);
+  const [editedAttributes, setEditedAttributes] = useState(null);
+
+  const previousProductRef = useRef(null);
 
   useEffect(() => {
     fetchProductsDetails();
@@ -38,6 +42,19 @@ export default function Home() {
     }
   }, [selectedProduct]);
 
+  useEffect(() => {
+    if (view === 'approved') {
+      fetchApprovedProducts();
+    } else if (view === 'rejected') {
+      fetchRejectedProducts();
+    } else if (view === 'reviewLater') {
+      fetchReviewLaterProducts();
+    } else if (view === 'all' && previousProductRef.current) {
+      setSelectedProduct(previousProductRef.current);
+      previousProductRef.current = null;
+    }
+  }, [view]);
+
   const fetchProductsDetails = async () => {
     try {
       const response = await axios.get('http://localhost:3001/product/details');
@@ -47,7 +64,7 @@ export default function Home() {
           id: index,
           product_images: product.image_url ? [{ image_url: product.image_url }] : [],
         }));
-        
+
         console.log("Fetched Products: ", productsWithImages);
         setProducts(productsWithImages);
         setSelectedProduct(productsWithImages[0]);
@@ -65,12 +82,19 @@ export default function Home() {
     try {
       const response = await axios.get(`http://localhost:3001/product/status/${status}`);
       if (response.data && response.data.length > 0) {
-        const productsWithImages = response.data.map((productImage, index) => ({
-          ...productImage.product,
-          id: index,
-          product_images: [{ image_url: `https://d12kqwzvfrkt5o.cloudfront.net/products/${productImage.product.sku}/${productImage.skuVariation.sku}/${productImage.image_name}` }],
-        }));
-        
+        const productsWithImages = response.data.map((productImage, index) => {
+          if (productImage && productImage.product && productImage.skuVariation && productImage.image) {
+            return {
+              ...productImage.product,
+              id: index,
+              product_images: [{ image_url: `https://d12kqwzvfrkt5o.cloudfront.net/products/${productImage.product.sku}/${productImage.skuVariation.sku}/${productImage.image}` }],
+            };
+          } else {
+            console.warn(`Invalid product image data at index ${index}`, productImage);
+            return null;
+          }
+        }).filter(product => product !== null);
+
         return productsWithImages;
       } else {
         console.error(`No ${status} products found in the response.`);
@@ -117,10 +141,15 @@ export default function Home() {
     setReviewLaterProducts(reviewLater);
   };
 
-  const handleStatusUpdate = async (productSku, variationSku, sgid, newStatus) => {
+  const handleStatusUpdate = async (id, newStatus) => {
     try {
-      if (!productSku || !variationSku ) {
-        throw new Error('Invalid product SKU, variation SKU, or sgid');
+      const product = products.find(p => p.id === id);
+      const imageUrlParts = product.product_images[0].image_url.split('/');
+      const productSku = imageUrlParts[4];
+      const variationSku = imageUrlParts[5];
+
+      if (!productSku || !variationSku) {
+        throw new Error('Invalid product SKU or variation SKU');
       }
 
       console.log('Updating status:', { productSku, variationSku, newStatus });
@@ -128,56 +157,34 @@ export default function Home() {
       await axios.put(`http://localhost:3001/product/image-attributes/${productSku}/${variationSku}`, { status: newStatus });
 
       const updatedProducts = products.map(product =>
-        product.product_id === productSku && product.variation_sku === variationSku ? { ...product, status: newStatus } : product
+        product.id === id ? { ...product, status: newStatus } : product
       );
-
 
       setProducts(updatedProducts);
 
-      // Re-filter the products to update the view
       filterProducts(updatedProducts);
 
-      const updatedSelectedProduct = updatedProducts.find(product => product.sgid === selectedProduct.sgid);
+      const updatedSelectedProduct = updatedProducts.find(product => product.id === id);
       setSelectedProduct(updatedSelectedProduct || null);
 
+      if (imageAttributes && imageAttributes.product_id === productSku && imageAttributes.sku_variation_id === variationSku) {
+        setImageAttributes({ ...imageAttributes, status: newStatus });
+      }
 
     } catch (error) {
       console.error('Error updating product status:', error);
     }
   };
 
-  const handleApprove = async () => {
-    if (selectedProduct && selectedProduct.product_images && selectedProduct.product_images.length > 0) {
-      const imageUrlParts = selectedProduct.product_images[0].image_url.split('/');
-      const productSku = imageUrlParts[4];
-      const variationSku = imageUrlParts[5];
-
-      if (!productSku || !variationSku) {
-        console.error('Invalid SKU values');
-        return;
-      }
-
-      await handleStatusUpdate(productSku, variationSku, selectedProduct.sgid, 'Approved');
-      fetchApprovedProducts();
-    }
-  };
-
-  const handleReject = async () => {
-    if (selectedProduct && selectedProduct.product_images && selectedProduct.product_images.length > 0) {
-      const imageUrlParts = selectedProduct.product_images[0].image_url.split('/');
-      const productSku = imageUrlParts[4];
-      const variationSku = imageUrlParts[5];
-
-      if (!productSku || !variationSku) {
-        console.error('Invalid SKU values');
-        return;
-      }
-
+  const handleReject = async (id, event) => {
+    const product = products.find(product => product.id === id);
+    if (product && product.status === 'Rejected') {
+      showPopup('This product is already in the rejected state.', event.target);
+    } else {
       const confirmReject = window.confirm('Are you sure you want to reject this product?');
       if (confirmReject) {
         try {
-          await handleStatusUpdate(productSku, variationSku, selectedProduct.sgid, 'Rejected');
-          fetchRejectedProducts();
+          await handleStatusUpdate(id, 'Rejected');
         } catch (error) {
           console.error('Error rejecting product:', error);
         }
@@ -185,29 +192,33 @@ export default function Home() {
     }
   };
 
-  const handleReviewLater = async () => {
-    if (selectedProduct && selectedProduct.product_images && selectedProduct.product_images.length > 0) {
-      const imageUrlParts = selectedProduct.product_images[0].image_url.split('/');
-      const productSku = imageUrlParts[4];
-      const variationSku = imageUrlParts[5];
+  const handleApprove = async (id, event) => {
+    const product = products.find(product => product.id === id);
+    if (product && product.status === 'Approved') {
+      showPopup('This product is already in the approved state.', event.target);
+    } else {
+      await handleStatusUpdate(id, 'Approved');
+    }
+  };
 
-      if (!productSku || !variationSku) {
-        console.error('Invalid SKU values');
-        return;
-      }
-
-      await handleStatusUpdate(productSku, variationSku, selectedProduct.sgid, 'ReviewLater');
-      fetchReviewLaterProducts();
+  const handleReviewLater = async (id, event) => {
+    const product = products.find(product => product.id === id);
+    if (product && product.status === 'ReviewLater') {
+      showPopup('This product is already in the review later state.', event.target);
+    } else {
+      await handleStatusUpdate(id, 'ReviewLater');
     }
   };
 
   const handleReviewAgain = async (product) => {
+    previousProductRef.current = product; // Save the current product to ref
     const imageUrlParts = product.product_images[0].image_url.split('/');
     const productSku = imageUrlParts[4];
     const variationSku = imageUrlParts[5];
     try {
-      await handleStatusUpdate(productSku, variationSku, product.sgid, 'Pending');
+      await handleStatusUpdate(product.id, 'Pending');
       setSelectedProduct(product);
+      setView('all'); // Switch back to the "Analyze" tab
       setReviewMode(true);
     } catch (error) {
       console.error('Error resetting product status:', error);
@@ -254,6 +265,91 @@ export default function Home() {
     }
   };
 
+  const handleCopy = (event) => {
+    if (selectedProduct) {
+      const textToCopy = `
+        Product SKU: ${imageAttributes.product_id}
+        Variation SKU: ${imageAttributes.sku_variation_id}
+        Image Name: ${imageAttributes.image_name}
+        Alt_text: ${imageAttributes.alt_text}
+        Created_at: ${imageAttributes.created_at}
+        Updated_at: ${imageAttributes.updated_at}
+        Status: ${imageAttributes.status}
+      `;
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => {
+          showPopup('Text copied to clipboard!', event.target);
+        })
+        .catch(err => {
+          console.error('Error copying text: ', err);
+        });
+    } else {
+      console.error('No product selected');
+    }
+  };
+
+  const handleEdit = () => {
+    setEditing(true);
+    setEditedAttributes(imageAttributes);
+  };
+
+  const handleSaveEdit = async () => {
+    try {
+      const imageUrlParts = selectedProduct.product_images[0].image_url.split('/');
+      const productSku = imageUrlParts[4];
+      const variationSku = imageUrlParts[5];
+
+      await axios.put(`http://localhost:3001/product/image-attributes/${productSku}/${variationSku}`, editedAttributes);
+
+      const updatedProducts = products.map(p => p.product_id === productSku && p.variation_sku === variationSku ? { ...p, ...editedAttributes } : p);
+      setProducts(updatedProducts);
+      setSelectedProduct({ ...selectedProduct, ...editedAttributes });
+      setImageAttributes(editedAttributes); // Update the state with the edited attributes
+      filterProducts(updatedProducts);
+      setEditing(false);
+      setEditedAttributes(null);
+    } catch (error) {
+      console.error('Error updating product:', error);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditing(false);
+    setEditedAttributes(null);
+  };
+
+  const showPopup = (message, target) => {
+    const popup = document.createElement('div');
+    popup.className = 'popup';
+    popup.textContent = message;
+
+    // Position the popup near the target element
+    const rect = target.getBoundingClientRect();
+    popup.style.top = `${rect.top - 40}px`; // Adjusted to display above the button
+    popup.style.left = `${rect.left}px`; // Adjusted as needed
+
+    document.body.appendChild(popup);
+    setTimeout(() => {
+      popup.remove();
+    }, 2000);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'ArrowLeft') { // Highlighted: Handling left arrow key
+        handlePrevious();
+      } else if (event.key === 'ArrowRight') { // Highlighted: Handling right arrow key
+        handleNext();
+      } 
+    };
+  
+    document.addEventListener('keydown', handleKeyDown);
+  
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handlePrevious, handleNext]);
+
   const renderProductList = (productList, currentPage, handleNextPage, handlePreviousPage) => {
     const totalPages = Math.ceil(productList.length / itemsPerPage);
     const startIndex = currentPage * itemsPerPage;
@@ -266,7 +362,7 @@ export default function Home() {
           <thead>
             <tr style={{ backgroundColor: '#BEE4F4', borderBottom: '1px solid #ddd' }}>
               <th style={{ padding: '5px', textAlign: 'center' }}>Images</th>
-              <th style={{ padding: '10px', textAlign: 'left' }}>Approved On</th>
+              <th style={{ padding: '10px', textAlign: 'left' }}>{view === 'approved' ? 'Approved On' : view === 'rejected' ? 'Rejected On' : 'Review On'}</th>
               <th style={{ padding: '10px', textAlign: 'center' }}>Actions</th>
             </tr>
           </thead>
@@ -278,10 +374,10 @@ export default function Home() {
                     <img
                       src={product.product_images[0].image_url} // Assuming first image URL is used
                       alt="Product Image"
-                      style={{ width: '100%', maxHeight: '300px', objectFit: 'contain' }}
+                      style={{ width: '35px', maxHeight: '35px', objectFit: 'contain' }} // Adjusted height
                     />
                   ) : (
-                    <div style={{ width: '100%', height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: '100%', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <span>No image available</span>
                     </div>
                   )}
@@ -372,16 +468,6 @@ export default function Home() {
     };
   }, []);
 
-  useEffect(() => {
-    if (view === 'approved') {
-      fetchApprovedProducts();
-    } else if (view === 'rejected') {
-      fetchRejectedProducts();
-    } else if (view === 'reviewLater') {
-      fetchReviewLaterProducts();
-    }
-  }, [view]);
-
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif', backgroundColor: 'white', minHeight: '100vh' }}>
       <h1 style={{ color: '#f5c500', fontWeight: 'bold', marginTop: 0 }}>INHABITR</h1>
@@ -411,7 +497,7 @@ export default function Home() {
             marginRight: '10px'
           }}
         >
-          Analyze 
+          Analyze
         </button>
         <button
           type="button"
@@ -511,7 +597,7 @@ export default function Home() {
                   }}
                 >
                   <button
-                    onClick={handleReviewLater}
+                    onClick={(event) => handleReviewLater(selectedProduct.id, event)}
                     style={{
                       padding: '10px 20px',
                       backgroundColor: 'white',
@@ -528,7 +614,7 @@ export default function Home() {
                   </button>
 
                   <button
-                    onClick={handleReject}
+                    onClick={(event) => handleReject(selectedProduct.id, event)}
                     style={{
                       padding: '10px 20px',
                       backgroundColor: 'white',
@@ -545,7 +631,7 @@ export default function Home() {
                   </button>
 
                   <button
-                    onClick={handleApprove}
+                    onClick={(event) => handleApprove(selectedProduct.id, event)}
                     style={{
                       padding: '10px 20px',
                       backgroundColor: '#1E90FF',
@@ -599,6 +685,10 @@ export default function Home() {
                     Next
                   </button>
                 </div>
+                <div style={{ position: 'absolute', bottom: '10px', right: '50%', transform: 'translateX(50%)', textAlign: 'center' }}>
+  <span>{currentIndex + 1} / {products.length}</span>
+</div>
+
               </div>
             )}
           </div>
@@ -619,7 +709,7 @@ export default function Home() {
                         <FontAwesomeIcon 
                             icon={faCopy} 
                             style={{ marginRight: '10px', cursor: 'pointer', color: 'black'}} 
-                            onClick={() => handleCopy()} 
+                            onClick={(event) => handleCopy(event)} 
                         />
                         <FontAwesomeIcon 
                             icon={faEdit} 
@@ -630,9 +720,22 @@ export default function Home() {
                 </h3>
 
                 <div style={{ backgroundColor: '#f4f4f4', padding: '10px', borderRadius: '5px', overflowX: 'auto' }}>
-                  {imageAttributes ? (
-                    <pre style={{ whiteSpace: 'pre-wrap', fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
-                      {`{
+                  {editing ? (
+                    <div>
+                      <p><strong>Product SKU:</strong> <input type="text" value={editedAttributes.product_id} onChange={(e) => setEditedAttributes({ ...editedAttributes, product_id: e.target.value })} /></p>
+                      <p><strong>Variation SKU:</strong> <input type="text" value={editedAttributes.sku_variation_id} onChange={(e) => setEditedAttributes({ ...editedAttributes, sku_variation_id: e.target.value })} /></p>
+                      <p><strong>Image Name:</strong> <input type="text" value={editedAttributes.image_name} onChange={(e) => setEditedAttributes({ ...editedAttributes, image_name: e.target.value })} /></p>
+                      <p><strong>Alt_text:</strong> <input type="text" value={editedAttributes.alt_text} onChange={(e) => setEditedAttributes({ ...editedAttributes, alt_text: e.target.value })} /></p>
+                      <p><strong>Created_at:</strong> <input type="text" value={editedAttributes.created_at} onChange={(e) => setEditedAttributes({ ...editedAttributes, created_at: e.target.value })} /></p>
+                      <p><strong>Updated_at:</strong> <input type="text" value={editedAttributes.updated_at} onChange={(e) => setEditedAttributes({ ...editedAttributes, updated_at: e.target.value })} /></p>
+                      <p><strong>Status:</strong> <input type="text" value={editedAttributes.status} onChange={(e) => setEditedAttributes({ ...editedAttributes, status: e.target.value })} /></p>
+                      <button onClick={handleSaveEdit} style={{ margin: '10px', padding: '10px 20px', backgroundColor: '#1E90FF', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Save</button>
+                      <button onClick={handleCancelEdit} style={{ margin: '10px', padding: '10px 20px', backgroundColor: 'grey', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
+                    </div>
+                  ) : (
+                    imageAttributes ? (
+                      <pre style={{ whiteSpace: 'pre-wrap', fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
+                        {`{
   "Product SKU": "${imageAttributes.product_id}",
   "Variation SKU": "${imageAttributes.sku_variation_id}",
   "Image Name": "${imageAttributes.image_name}",
@@ -641,9 +744,10 @@ export default function Home() {
   "Updated_at": "${imageAttributes.updated_at}",
   "Status": "${imageAttributes.status}"
 }`}
-                    </pre>
-                  ) : (
-                    <span>Loading image attributes...</span>
+                      </pre>
+                    ) : (
+                      <span>Loading image attributes...</span>
+                    )
                   )}
                 </div>
               </div>
@@ -651,6 +755,17 @@ export default function Home() {
           </div>
         </div>
       )}
+      <style jsx>{`
+        .popup {
+          position: absolute;
+          background-color: rgba(0, 0, 0, 0.7);
+          color: white;
+          padding: 10px 20px;
+          border-radius: 5px;
+          z-index: 1000;
+          font-size: 16px;
+        }
+      `}</style>
     </div>
   );
 }

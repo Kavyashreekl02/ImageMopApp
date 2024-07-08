@@ -1,8 +1,11 @@
 /* eslint-disable prettier/prettier */
-import { Controller, Post, Body, Get, Param, Put, Delete, NotFoundException } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable prettier/prettier */
+import { Controller, Post, Body, Get, Param, Put, Delete, NotFoundException, HttpException, HttpStatus, BadRequestException } from '@nestjs/common';
 import { ImageService } from './image.service';
 import { CreateImageDto } from './dto/create-image.dto';
 import { UpdateImageDto } from './dto/update-image.dto';
+import { DeleteImageDto } from './dto/delete-image.dto';
 
 @Controller('product')
 export class ImageController {
@@ -15,9 +18,9 @@ export class ImageController {
   }
 
   @Get('status/:status')
-  findProductsByStatus(@Param('status') status: string) {
-    return this.imageService.findProductsByStatus(status);
-  }
+findProductsByStatus(@Param('status') status: string) {
+  return this.imageService.findProductsByStatus(status);
+}
 
   @Get('image-attributes/:productSku/:variationSku')
   async getImageAttributes(
@@ -64,4 +67,17 @@ export class ImageController {
   remove(@Param('id') id: string) {
     return this.imageService.remove(+id);
   }
+
+  @Delete('image')
+  async deleteImage(@Body() deleteImageDto: DeleteImageDto) {
+    console.log('Delete request received with body:', deleteImageDto);
+
+    if (!deleteImageDto.productSku || !deleteImageDto.variationSku || !deleteImageDto.imageName) {
+      console.error('Missing parameters:', deleteImageDto);
+      throw new BadRequestException('Missing required parameters');
+    }
+
+    return this.imageService.deleteImage(deleteImageDto);
+  }
+
 }
