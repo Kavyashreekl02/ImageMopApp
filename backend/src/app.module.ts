@@ -10,11 +10,11 @@ import { ProductSkuVariation } from './images/entities/image-sku.entity';
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
+      host: 'dev-pdm-saffron.cereptpeh9n0.us-west-1.rds.amazonaws.com',
       port: 5432,
       username: 'postgres',
-      password: 'root',
-      database: 'nestapp',
+      password: 'OiaWHu7z6V5ojhPSSJfV',
+      database: 'furniture_data_cloud',
       entities: [Product, ProductImage, ProductSkuVariation], // Specify your entities here
       synchronize: false, // Don't synchronize with the database
       logging: true,

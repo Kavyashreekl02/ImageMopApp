@@ -7,6 +7,8 @@ import { CreateImageDto } from './dto/create-image.dto';
 import { UpdateImageDto } from './dto/update-image.dto';
 import { Product } from './entities/image.entity';
 import { ProductImage } from './entities/image-image.entity';
+import { ProductSkuVariation } from './entities/image-sku.entity';
+import { DeleteImageDto } from './dto/delete-image.dto';
 
 @Injectable()
 export class ImageService {
@@ -15,6 +17,8 @@ export class ImageService {
     private readonly productRepository: Repository<Product>,
     @InjectRepository(ProductImage)
     private readonly productImageRepository: Repository<ProductImage>,
+    @InjectRepository(ProductSkuVariation)
+    private readonly productSkuVariationRepository: Repository<ProductSkuVariation>,
   ) {}
 
   // Method to create a new product
@@ -39,7 +43,7 @@ export class ImageService {
 
       // Execute the SQL query and get the results
       const imageResult = await this.productRepository.query(`
-        SELECT p.sku AS product_sku, psv.sku AS variation_sku, pi.image_name AS image_name
+        SELECT p.sku AS product_sku, psv.sku AS variation_sku, pi.image AS image_name
         FROM product p
         JOIN product_sku_variation psv ON p.sgid = psv.product_id
         JOIN product_images pi ON psv.sgid = pi.sku_variation_id
@@ -64,12 +68,14 @@ export class ImageService {
     try {
       console.log(`Fetching image attributes for Product SKU: ${productSku}, Variation SKU: ${variationSku}`);
       const imageResult = await this.productRepository.query(`
-        SELECT pi.sgid, pi.product_id, pi.sku_variation_id, pi.image_name, pi.alt_text, pi.is_default, pi.sort_order, pi.created_at, pi.updated_at, pi.status
+        SELECT pi.sgid, psv.product_id, pi.sku_variation_id, pi.image AS image_name, pi.alt_text, pi.is_default, pi.sort_order, pi.created_at, pi.updated_at, pi.status
         FROM product_images pi
         JOIN product_sku_variation psv ON pi.sku_variation_id = psv.sgid
         JOIN product p ON psv.product_id = p.sgid
         WHERE p.sku = $1 AND psv.sku = $2;
       `, [productSku, variationSku]);
+
+      console.log(productSku,variationSku)
 
       if (imageResult.length === 0) {
         throw new NotFoundException(`No image found for product SKU: ${productSku} and variation SKU: ${variationSku}`);
@@ -87,10 +93,10 @@ export class ImageService {
     productSku: string,
     variationSku: string,
     updateImageDto: UpdateImageDto
-  ): Promise<ProductImage> {
+  ): Promise<any> {
     try {
       const product = await this.productRepository.query(`
-        SELECT p.sgid AS product_id, psv.sgid AS sku_variation_id
+        SELECT p.sgid AS sgid, psv.sgid AS sku_variation_id
         FROM product p
         JOIN product_sku_variation psv ON p.sgid = psv.product_id
         WHERE p.sku = $1 AND psv.sku = $2
@@ -100,20 +106,26 @@ export class ImageService {
         throw new NotFoundException('Product or SKU variation not found');
       }
 
-      const { product_id, sku_variation_id } = product[0];
+     const { sku_variation_id } = product[0];
 
-      console.log('Updating image attributes:', { product_id, sku_variation_id, updateImageDto });
+      console.log('Updating image attributes:', { sku_variation_id, updateImageDto });
 
       const image = await this.productImageRepository.findOne({
-        where: { product_id, sku_variation_id }
-      });
+        where: { sku_variation_id: sku_variation_id }
+      })
+
+      console.log(`image name: ${JSON.stringify(image)}`)
 
       if (!image) {
+
         throw new NotFoundException('Image not found');
       }
 
       Object.assign(image, updateImageDto);
       return await this.productImageRepository.save(image);
+
+      
+     
     } catch (error) {
       console.error('Error updating image attributes:', error);
       throw new InternalServerErrorException('Failed to update image attributes');
@@ -123,8 +135,37 @@ export class ImageService {
   async findProductsByStatus(status: string): Promise<ProductImage[]> {
     return this.productImageRepository.find({
       where: { status },
-      relations: ['product', 'skuVariation'],
+      relations: ['skuVariation'],
     });
+  }
+
+  async deleteImage(deleteImageDto: DeleteImageDto): Promise<void> {
+    const { productSku, variationSku, imageName } = deleteImageDto;
+
+    console.log('Received parameters for deletion:', { productSku, variationSku, imageName });
+
+    if (!productSku || !variationSku || !imageName) {
+      console.error('Invalid parameters:', { productSku, variationSku, imageName });
+      throw new BadRequestException('Invalid parameters for deletion');
+    }
+
+    const image = await this.productImageRepository.findOne({
+      where: { image: imageName },
+      relations: ['skuVariation', 'skuVariation.product'],
+    });
+
+    console.log('Found image:', image);
+
+    if (!image || image.skuVariation.sku !== variationSku || image.skuVariation.product.sku !== productSku) {
+      console.error('Image not found or mismatched parameters:', {
+        imageSku: image?.skuVariation.sku,
+        imageProductSku: image?.skuVariation.product.sku,
+      });
+      throw new NotFoundException('Image not found');
+    }
+
+    await this.productImageRepository.remove(image);
+    console.log('Image deleted successfully:', { productSku, variationSku, imageName });
   }
 
   // Method to update a product by ID
@@ -140,11 +181,15 @@ export class ImageService {
 
   // Method to remove a product by ID
   async remove(id: number): Promise<void> {
+    if (isNaN(id)) {
+      throw new BadRequestException('Invalid ID for deletion');
+    }
+  
     const product = await this.findOne(id);
     if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
-
+  
     await this.productRepository.remove(product);
   }
 }
