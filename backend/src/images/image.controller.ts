@@ -1,7 +1,21 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prettier/prettier */
-import { Controller, Post, Body, Get, Param, Put, Delete, NotFoundException, HttpException, HttpStatus, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Put,
+  Delete,
+  NotFoundException,
+  HttpException,
+  HttpStatus,
+  BadRequestException,
+  InternalServerErrorException,
+  Query,
+} from '@nestjs/common';
 import { ImageService } from './image.service';
 import { CreateImageDto } from './dto/create-image.dto';
 import { UpdateImageDto } from './dto/update-image.dto';
@@ -9,28 +23,27 @@ import { DeleteImageDto } from './dto/delete-image.dto';
 
 @Controller('product')
 export class ImageController {
-  
   constructor(private readonly imageService: ImageService) {}
 
-  @Get('details')
-  async getProductDetails() {
-    return this.imageService.getProductDetails();
-  }
-
   @Get('status/:status')
-findProductsByStatus(@Param('status') status: string) {
-  return this.imageService.findProductsByStatus(status);
-}
-
-  @Get('image-attributes/:productSku/:variationSku')
+  findProductsByStatus(@Param('status') status: string) {
+    return this.imageService.findProductsByStatus(status);
+  }
+  
+  @Get('image-attributes')
   async getImageAttributes(
-    @Param('productSku') productSku: string, 
-    @Param('variationSku') variationSku: string
+    @Query('limit') limit: number = 500,
+    @Query('offset') offset: number = 0,
   ) {
-    return this.imageService.getImageAttributes(productSku, variationSku);
+    return this.imageService.getImageAttributes(limit, offset);
   }
 
-  @Put('image-attributes/:productSku/:variationSku')
+  @Get('total-images')
+  async getTotalImages() {
+    return this.imageService.getTotalImages();
+  }
+
+ @Put('image-attributes/:productSku/:variationSku')
   async updateImageAttributes(
     @Param('productSku') productSku: string,
     @Param('variationSku') variationSku: string,
@@ -38,6 +51,7 @@ findProductsByStatus(@Param('status') status: string) {
   ) {
     return this.imageService.updateImageAttributes(productSku, variationSku, updateImageAttributes);
   }
+  
 
   @Post()
   create(@Body() createProductDto: CreateImageDto) {
@@ -72,7 +86,11 @@ findProductsByStatus(@Param('status') status: string) {
   async deleteImage(@Body() deleteImageDto: DeleteImageDto) {
     console.log('Delete request received with body:', deleteImageDto);
 
-    if (!deleteImageDto.productSku || !deleteImageDto.variationSku || !deleteImageDto.imageName) {
+    if (
+      !deleteImageDto.productSku ||
+      !deleteImageDto.variationSku ||
+      !deleteImageDto.imageName
+    ) {
       console.error('Missing parameters:', deleteImageDto);
       throw new BadRequestException('Missing required parameters');
     }
@@ -80,4 +98,14 @@ findProductsByStatus(@Param('status') status: string) {
     return this.imageService.deleteImage(deleteImageDto);
   }
 
+  // @Delete('deleteByProductAndVariation/:productSku/:variationSku')
+  // async deleteImageByProductAndVariation(
+  //   @Param('productSku') productSku: string,
+  //   @Param('variationSku') variationSku: string,
+  // ): Promise<void> {
+  //   await this.imageService.deleteByProductAndVariation(
+  //     productSku,
+  //     variationSku,
+  //   );
+  // }
 }

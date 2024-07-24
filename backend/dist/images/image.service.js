@@ -18,10 +18,12 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const image_entity_1 = require("./entities/image.entity");
 const image_image_entity_1 = require("./entities/image-image.entity");
+const image_sku_entity_1 = require("./entities/image-sku.entity");
 let ImageService = class ImageService {
-    constructor(productRepository, productImageRepository) {
+    constructor(productRepository, productImageRepository, productSkuVariationRepository) {
         this.productRepository = productRepository;
         this.productImageRepository = productImageRepository;
+        this.productSkuVariationRepository = productSkuVariationRepository;
     }
     create(createProductDto) {
         const product = this.productRepository.create(createProductDto);
@@ -33,42 +35,58 @@ let ImageService = class ImageService {
     findOne(id) {
         return this.productRepository.findOneBy({ sgid: id });
     }
-    async getProductDetails() {
+    async getTotalImages() {
         try {
-            const baseUrl = 'https://d12kqwzvfrkt5o.cloudfront.net/products';
-            const imageResult = await this.productRepository.query(`
-        SELECT p.sku AS product_sku, psv.sku AS variation_sku, pi.image_name AS image_name
-        FROM product p
-        JOIN product_sku_variation psv ON p.sgid = psv.product_id
-        JOIN product_images pi ON psv.sgid = pi.sku_variation_id
-        WHERE p.sgid IN (2, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20);
-      `);
-            console.log(`imageResult: ${JSON.stringify(imageResult)}`);
-            const result = imageResult.map(item => ({
-                image_url: `${baseUrl}/${item.product_sku}/${item.variation_sku}/${item.image_name}`
-            }));
-            return result;
+            const totalImages = await this.productImageRepository.count();
+            return totalImages;
         }
         catch (error) {
-            console.error('Error fetching product details:', error);
-            throw new Error('Internal server error');
+            console.error('Error fetching total number of images:', error);
+            throw new common_1.InternalServerErrorException('Failed to fetch total number of images');
         }
     }
-    async getImageAttributes(productSku, variationSku) {
+    async getImageAttributes(limit, offset) {
         try {
-            console.log(`Fetching image attributes for Product SKU: ${productSku}, Variation SKU: ${variationSku}`);
+            const baseUrl = 'https://d12kqwzvfrkt5o.cloudfront.net/products';
+            console.log(`Fetching image attributes`);
             const imageResult = await this.productRepository.query(`
-        SELECT pi.sgid, pi.product_id, pi.sku_variation_id, pi.image_name, pi.alt_text, pi.is_default, pi.sort_order, pi.created_at, pi.updated_at, pi.status
-        FROM product_images pi
-        JOIN product_sku_variation psv ON pi.sku_variation_id = psv.sgid
-        JOIN product p ON psv.product_id = p.sgid
-        WHERE p.sku = $1 AND psv.sku = $2;
-      `, [productSku, variationSku]);
+        SELECT 
+            p.sgid as sgid,
+            pi.sku_variation_id AS sku_variation_id,
+            p.sku AS product_sku,
+            psv.sku AS product_variation_sku,
+            p.name AS product_name,
+            p.description AS product_description,
+            p.meta_title AS meta_title,
+            p.meta_description AS meta_description,
+            p.meta_keywords AS meta_keywords,
+            psv.weight AS product_weight,
+            psv.dimension AS product_dimension,
+            pi.image AS product_image,
+            pi.alt_text AS alt_text,
+            pi.created_at AS created_at,
+            pi.updated_at AS updated_at,
+            pi.image_url AS image_url,
+            pi.status AS status
+        FROM 
+            product p
+        JOIN 
+            product_sku_variation psv ON p.sgid = psv.product_id
+        JOIN 
+            product_images pi ON psv.sgid = pi.sku_variation_id
+        ORDER BY 
+            p.sgid
+        LIMIT $1 OFFSET $2;
+      `, [limit, offset]);
             if (imageResult.length === 0) {
-                throw new common_1.NotFoundException(`No image found for product SKU: ${productSku} and variation SKU: ${variationSku}`);
+                throw new common_1.NotFoundException('No images found');
             }
-            console.log('Fetched image attributes:', imageResult[0]);
-            return imageResult[0];
+            const result = imageResult.map((item) => ({
+                ...item,
+                image_url: `${baseUrl}/${item.product_sku}/${item.product_variation_sku}/${item.product_image}`,
+            }));
+            console.log('Fetched image attributes:', result);
+            return result;
         }
         catch (error) {
             console.error('Error fetching image attributes:', error);
@@ -78,7 +96,7 @@ let ImageService = class ImageService {
     async updateImageAttributes(productSku, variationSku, updateImageDto) {
         try {
             const product = await this.productRepository.query(`
-        SELECT p.sgid AS product_id, psv.sgid AS sku_variation_id
+        SELECT p.sku AS product_sku, psv.sku AS product_variation_sku
         FROM product p
         JOIN product_sku_variation psv ON p.sgid = psv.product_id
         WHERE p.sku = $1 AND psv.sku = $2
@@ -86,16 +104,35 @@ let ImageService = class ImageService {
             if (!product.length) {
                 throw new common_1.NotFoundException('Product or SKU variation not found');
             }
-            const { product_id, sku_variation_id } = product[0];
-            console.log('Updating image attributes:', { product_id, sku_variation_id, updateImageDto });
-            const image = await this.productImageRepository.findOne({
-                where: { product_id, sku_variation_id }
-            });
-            if (!image) {
-                throw new common_1.NotFoundException('Image not found');
+            const { product_variation_sku } = product[0];
+            console.log('Updating image attributes:', { product_variation_sku, updateImageDto });
+            const updateResult = await this.productImageRepository.query(`
+        UPDATE "product_images" "ProductImage"
+        SET
+          "status" = $1,
+          "updated_at" = $2
+        FROM "product_sku_variation" "ProductSkuVariation"
+        JOIN "product" "Product" ON "ProductSkuVariation"."product_id" = "Product"."sgid"
+        WHERE "ProductSkuVariation"."sgid" = "ProductImage"."sku_variation_id"
+          AND "Product"."sku" = $3
+          AND "ProductSkuVariation"."sku" = $4
+        RETURNING "ProductImage".*
+      `, [
+                updateImageDto.status,
+                new Date(),
+                productSku,
+                variationSku
+            ]);
+            if (!updateResult.length) {
+                throw new common_1.NotFoundException('Image not found or not updated');
             }
-            Object.assign(image, updateImageDto);
-            return await this.productImageRepository.save(image);
+            const updatedImage = updateResult[0];
+            const payload = {
+                ...updatedImage,
+                image_url: `https://d12kqwzvfrkt5o.cloudfront.net/products/${productSku}/${product_variation_sku}/${updatedImage.image}`,
+            };
+            console.log('Payload:', payload);
+            return payload;
         }
         catch (error) {
             console.error('Error updating image attributes:', error);
@@ -103,9 +140,85 @@ let ImageService = class ImageService {
         }
     }
     async findProductsByStatus(status) {
-        return this.productImageRepository.find({
-            where: { status },
-            relations: ['product', 'skuVariation'],
+        const baseUrl = 'https://d12kqwzvfrkt5o.cloudfront.net/products';
+        const query = `
+        SELECT 
+            p.sgid as sgid,
+            pi.sku_variation_id AS sku_variation_id,
+            p.sku AS product_sku,
+            psv.sku AS product_variation_sku,
+            p.name AS product_name,
+            p.description AS product_description,
+            p.meta_title AS meta_title,
+            p.meta_description AS meta_description,
+            p.meta_keywords AS meta_keywords,
+            psv.weight AS product_weight,
+            psv.dimension AS product_dimension,
+            pi.image AS product_image,
+            pi.alt_text AS alt_text,
+            pi.created_at AS created_at,
+            pi.updated_at AS updated_at,
+            pi.image_url AS image_url,
+            pi.status AS status
+        FROM 
+            product p
+        JOIN 
+            product_sku_variation psv ON p.sgid = psv.product_id
+        JOIN 
+            product_images pi ON psv.sgid = pi.sku_variation_id
+        WHERE 
+            pi.status = $1
+        ORDER BY 
+            pi.updated_at DESC
+        LIMIT 500 OFFSET 0;
+    `;
+        const imageResult = await this.productImageRepository.query(query, [
+            status,
+        ]);
+        if (imageResult.length === 0) {
+            console.log(`No products found with status: ${status}`);
+            return [];
+        }
+        const result = imageResult.map((item) => ({
+            ...item,
+            image_url: `${baseUrl}/${item.product_sku}/${item.product_variation_sku}/${item.product_image}`,
+        }));
+        return result;
+    }
+    async deleteImage(deleteImageDto) {
+        const { productSku, variationSku, imageName } = deleteImageDto;
+        console.log('Received parameters for deletion:', {
+            productSku,
+            variationSku,
+            imageName,
+        });
+        if (!productSku || !variationSku || !imageName) {
+            console.error('Invalid parameters:', {
+                productSku,
+                variationSku,
+                imageName,
+            });
+            throw new common_1.BadRequestException('Invalid parameters for deletion');
+        }
+        const image = await this.productImageRepository.findOne({
+            where: { image: imageName },
+            relations: ['skuVariation', 'skuVariation.product'],
+        });
+        console.log('Found image:', image);
+        if (!image ||
+            image.skuVariation.sku !== variationSku ||
+            image.skuVariation.product.sku !== productSku) {
+            console.error('Image not found or mismatched parameters:', {
+                imageSku: image?.skuVariation.sku,
+                imageProductSku: image?.skuVariation.product.sku,
+            });
+            throw new common_1.NotFoundException('Image not found');
+        }
+        await this.productImageRepository.remove(image);
+        console.log('Image deleted successfully:', {
+            productSku,
+            variationSku,
+            imageName,
         });
     }
     async update(id, updateProductDto) {
@@ -117,6 +230,9 @@ let ImageService = class ImageService {
         return this.productRepository.save(product);
     }
     async remove(id) {
+        if (isNaN(id)) {
+            throw new common_1.BadRequestException('Invalid ID for deletion');
+        }
         const product = await this.findOne(id);
         if (!product) {
             throw new common_1.NotFoundException(`Product with ID ${id} not found`);
@@ -129,7 +245,9 @@ exports.ImageService = ImageService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(image_entity_1.Product)),
     __param(1, (0, typeorm_1.InjectRepository)(image_image_entity_1.ProductImage)),
+    __param(2, (0, typeorm_1.InjectRepository)(image_sku_entity_1.ProductSkuVariation)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository])
 ], ImageService);
 //# sourceMappingURL=image.service.js.map

@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductImage = void 0;
 const typeorm_1 = require("typeorm");
-const image_entity_1 = require("./image.entity");
 const image_sku_entity_1 = require("./image-sku.entity");
 let ProductImage = class ProductImage {
 };
@@ -23,15 +22,11 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", Number)
-], ProductImage.prototype, "product_id", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", Number)
 ], ProductImage.prototype, "sku_variation_id", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], ProductImage.prototype, "image_name", void 0);
+], ProductImage.prototype, "image", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
@@ -61,11 +56,6 @@ __decorate([
     (0, typeorm_1.JoinColumn)({ name: 'sku_variation_id' }),
     __metadata("design:type", image_sku_entity_1.ProductSkuVariation)
 ], ProductImage.prototype, "skuVariation", void 0);
-__decorate([
-    (0, typeorm_1.ManyToOne)(() => image_entity_1.Product, product => product.productImages),
-    (0, typeorm_1.JoinColumn)({ name: 'product_id' }),
-    __metadata("design:type", image_entity_1.Product)
-], ProductImage.prototype, "product", void 0);
 exports.ProductImage = ProductImage = __decorate([
     (0, typeorm_1.Entity)('product_images')
 ], ProductImage);

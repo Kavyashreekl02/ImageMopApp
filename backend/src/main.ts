@@ -13,12 +13,10 @@ async function bootstrap() {
   app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
   app.enableCors({
-    origin: 'http://localhost:3000',  // Replace with your frontend origin
+    origin: 'http://localhost:9000', // https://tools.inhabitr.com
   });
 
   await app.listen(3001);
   console.log(`Application is running on: ${await app.getUrl()}`);
-  
-  
 }
 bootstrap();

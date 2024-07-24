@@ -21,11 +21,11 @@ exports.AppModule = AppModule = __decorate([
         imports: [
             typeorm_1.TypeOrmModule.forRoot({
                 type: 'postgres',
-                host: 'localhost',
+                host: 'dev-pdm-saffron.cereptpeh9n0.us-west-1.rds.amazonaws.com',
                 port: 5432,
                 username: 'postgres',
-                password: 'root',
-                database: 'nestapp',
+                password: 'OiaWHu7z6V5ojhPSSJfV',
+                database: 'furniture_data_cloud',
                 entities: [image_entity_1.Product, image_image_entity_1.ProductImage, image_sku_entity_1.ProductSkuVariation],
                 synchronize: false,
                 logging: true,

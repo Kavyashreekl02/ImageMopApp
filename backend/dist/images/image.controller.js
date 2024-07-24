@@ -17,18 +17,19 @@ const common_1 = require("@nestjs/common");
 const image_service_1 = require("./image.service");
 const create_image_dto_1 = require("./dto/create-image.dto");
 const update_image_dto_1 = require("./dto/update-image.dto");
+const delete_image_dto_1 = require("./dto/delete-image.dto");
 let ImageController = class ImageController {
     constructor(imageService) {
         this.imageService = imageService;
     }
-    async getProductDetails() {
-        return this.imageService.getProductDetails();
-    }
     findProductsByStatus(status) {
         return this.imageService.findProductsByStatus(status);
     }
-    async getImageAttributes(productSku, variationSku) {
-        return this.imageService.getImageAttributes(productSku, variationSku);
+    async getImageAttributes(limit = 500, offset = 0) {
+        return this.imageService.getImageAttributes(limit, offset);
+    }
+    async getTotalImages() {
+        return this.imageService.getTotalImages();
     }
     async updateImageAttributes(productSku, variationSku, updateImageAttributes) {
         return this.imageService.updateImageAttributes(productSku, variationSku, updateImageAttributes);
@@ -52,14 +53,18 @@ let ImageController = class ImageController {
     remove(id) {
         return this.imageService.remove(+id);
     }
+    async deleteImage(deleteImageDto) {
+        console.log('Delete request received with body:', deleteImageDto);
+        if (!deleteImageDto.productSku ||
+            !deleteImageDto.variationSku ||
+            !deleteImageDto.imageName) {
+            console.error('Missing parameters:', deleteImageDto);
+            throw new common_1.BadRequestException('Missing required parameters');
+        }
+        return this.imageService.deleteImage(deleteImageDto);
+    }
 };
 exports.ImageController = ImageController;
-__decorate([
-    (0, common_1.Get)('details'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], ImageController.prototype, "getProductDetails", null);
 __decorate([
     (0, common_1.Get)('status/:status'),
     __param(0, (0, common_1.Param)('status')),
@@ -68,13 +73,19 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ImageController.prototype, "findProductsByStatus", null);
 __decorate([
-    (0, common_1.Get)('image-attributes/:productSku/:variationSku'),
-    __param(0, (0, common_1.Param)('productSku')),
-    __param(1, (0, common_1.Param)('variationSku')),
+    (0, common_1.Get)('image-attributes'),
+    __param(0, (0, common_1.Query)('limit')),
+    __param(1, (0, common_1.Query)('offset')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [Number, Number]),
     __metadata("design:returntype", Promise)
 ], ImageController.prototype, "getImageAttributes", null);
+__decorate([
+    (0, common_1.Get)('total-images'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ImageController.prototype, "getTotalImages", null);
 __decorate([
     (0, common_1.Put)('image-attributes/:productSku/:variationSku'),
     __param(0, (0, common_1.Param)('productSku')),
@@ -119,6 +130,13 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ImageController.prototype, "remove", null);
+__decorate([
+    (0, common_1.Delete)('image'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [delete_image_dto_1.DeleteImageDto]),
+    __metadata("design:returntype", Promise)
+], ImageController.prototype, "deleteImage", null);
 exports.ImageController = ImageController = __decorate([
     (0, common_1.Controller)('product'),
     __metadata("design:paramtypes", [image_service_1.ImageService])
